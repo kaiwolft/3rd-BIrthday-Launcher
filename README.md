@@ -43,6 +43,10 @@ El instalador genera la versión en español **a partir de tu ISO americana** (p
 |---|---|
 | ![Texto HD](capturas/texto_hd_antes_despues.png) | ![Botones](capturas/botones_xbox_teclado.png) |
 
+## 🏆 Logros (RetroAchievements)
+
+Los **74 logros oficiales** de RetroAchievements (set de **zizom**), evaluados **sin conexión** por el launcher, también en la **versión en español (UNDUB)**, que el servidor no acepta. Inicia sesión una vez en *Extras → LOGROS* para descargar la lista y los iconos (no se guarda tu contraseña). Aviso en pantalla con icono y puntos, progreso y textos traducidos al español. Se guardan en el launcher, no en tu perfil de RetroAchievements. La versión japonesa no tiene logros.
+
 ## Funciones
 
 - Launcher con la estética del juego (archivo del CTI), **animación OVERDIVE** al jugar y cierre tipo CRT; en **español e inglés**.
@@ -106,6 +110,7 @@ Estructura: `launcher/` (launcher Electron: `resources/app/main.js`, `bridge.ps1
 - **Dionixu** ([@kaiwolft](https://github.com/kaiwolft)) — idea, diseño, pruebas y desarrollo del launcher.
 - Desarrollado junto a **Claude** (Anthropic).
 - **daetrox** ([@daetrox](https://github.com/daetrox)) — correcciones para Linux en los launchers de Dionixu.
+- **Logros:** set de RetroAchievements por **zizom** · [rcheevos](https://github.com/RetroAchievements/rcheevos) (MIT).
 - **Traducción al español:** Traducciones del Tío Victor — SkyBladeCloud, el_capo, Ventus, auron, Akareh, Axxel, Vash, Phoenix, Joghi, eliden, IlDucci.
 - **Texturas HD e iconos de botones:** generados para este launcher (Dionixu y Claude) a partir de las texturas del juego.
 - **Música y efectos del launcher:** creados para este launcher.
@@ -136,6 +141,9 @@ The 3rd Birthday Launcher turns **your own original copy** of *The 3rd Birthday*
 - **Xbox or keyboard & mouse prompts in game** — the keyboard prompts show **your own key bindings**.
 - Optional image filters (sharpen, FXAA, natural colors), anti-aliasing and anisotropic filtering.
 
+### 🏆 Achievements
+The **74 official RetroAchievements** (set by **zizom**), checked **offline** by the launcher — also in the Spanish UNDUB version, which the server does not accept. Sign in once in *Extras → ACHIEVEMENTS* to download the list and icons (your password is not stored). On-screen notice with icon and points, progress tracking. Stored in the launcher, not on your RetroAchievements profile. The Japanese version has no achievements.
+
 ### Features
 - Game-themed launcher (CTI archive) with OVERDIVE launch animation, in Spanish and English; choose **Spanish (UNDUB)**, **English** or **Japanese**.
 - **Free camera** with mouse and right stick (Windows, all versions); editable controls; ESC or **L3 + R3** pause menu with live volume (Windows).
@@ -150,7 +158,7 @@ The 3rd Birthday Launcher turns **your own original copy** of *The 3rd Birthday*
 GitHub Actions builds both installers when `VERSION` changes or a `v*` tag is pushed. The Spanish patch lives in `parche/partes/` (95 MB parts) and is joined and MD5-checked at build time.
 
 ### Credits
-Dionixu ([@kaiwolft](https://github.com/kaiwolft)) — author · developed together with **Claude** (Anthropic) · daetrox ([@daetrox](https://github.com/daetrox)) — Linux fixes · Spanish translation: Traducciones del Tío Victor (SkyBladeCloud, el_capo, Ventus, auron, Akareh, Axxel, Vash, Phoenix, Joghi, eliden, IlDucci) · HD textures, prompts, launcher music and sounds made for this launcher · PPSSPP (Henrik Rydgård and contributors, GPL 2.0+) · xdelta3 (Joshua MacDonald) · Electron · fonts under SIL OFL (Special Elite, Share Tech Mono, Barlow). *The 3rd Birthday* © 2010–2011 Square Enix Co., Ltd.
+Dionixu ([@kaiwolft](https://github.com/kaiwolft)) — author · developed together with **Claude** (Anthropic) · daetrox ([@daetrox](https://github.com/daetrox)) — Linux fixes · achievement set by zizom (RetroAchievements) · Spanish translation: Traducciones del Tío Victor (SkyBladeCloud, el_capo, Ventus, auron, Akareh, Axxel, Vash, Phoenix, Joghi, eliden, IlDucci) · HD textures, prompts, launcher music and sounds made for this launcher · PPSSPP (Henrik Rydgård and contributors, GPL 2.0+) · xdelta3 (Joshua MacDonald) · Electron · fonts under SIL OFL (Special Elite, Share Tech Mono, Barlow). *The 3rd Birthday* © 2010–2011 Square Enix Co., Ltd.
 
 ### ☕ Support
 [Ko-fi](https://ko-fi.com/dionixu838824) — thank you!
@@ -170,6 +178,9 @@ The 3rd Birthday Launcher transforme **votre propre copie originale** de *The 3r
 
 ### ✨ Améliorations visuelles
 Résolution interne jusqu'en **4K**, **mise à l'échelle des textures par GPU** (4xBRZ, MMPX), **police, HUD et icônes redessinés en HD**, **icônes Xbox ou clavier/souris** (avec vos propres touches), filtres d'image optionnels.
+
+### 🏆 Succès
+Les **74 succès officiels** de RetroAchievements (set de **zizom**), vérifiés **hors ligne** par le launcher, y compris dans la version espagnole (UNDUB). Connectez-vous une fois dans *Extras → LOGROS* pour télécharger la liste. Ils sont enregistrés dans le launcher, pas sur votre profil RetroAchievements.
 
 ### Installation
 - **Windows 10/11 :** décompressez tout le `.zip`, ouvrez `Instalar The 3rd Birthday.exe`, choisissez votre/vos ISO et le dossier. PPSSPP est inclus. Steam : `AGREGAR_A_STEAM.bat`.
