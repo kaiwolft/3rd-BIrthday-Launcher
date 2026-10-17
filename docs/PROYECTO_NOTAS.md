@@ -315,3 +315,16 @@ NOTAS TECNICAS UTILES
   Tambien agregado a Fragile Dreams, The Last Story y Pandora's Tower (scripts, instalador, README). Astral Chain es solo Windows.
 - Carpeta final: script 12 ahora usa F:\Juegos de DIonis Con launcher personalizado (o E:\ si no hay F:).
   El AGREGAR_A_STEAM.ps1 general usa su propia carpeta ($PSScriptRoot): sigue funcionando tras moverla a F:.
+
+
+## Logros (17-oct-2026, v1.1.0)
+- Set RetroAchievements juego 3511 (74 logros, 1205 pts, autor zizom; el servidor agrega un aviso 101000001 de 0 pts que se filtra).
+- Motor: herramientas/logros/t3b_logros.c (rcheevos v11.6.0, API peek(addr, n, ud) devuelve el valor). Compilar: sh herramientas/logros/build.sh.
+  - Memoria RA PSP: 0x0-0x1FFFFFF = PSP 0x08000000+. Windows: base con SendMessage(PPSSPPWnd, WM_APP+0x3118, 0, 0/1);
+    juego cargado = WM_APP+0x311A != 0; en partida = WM_APP+0x3119. Linux: /dev/shm/ppsspp_N.ram (deleted) via /proc/<pid>/fd, RAM en 0x204000 (0x214000 con pagina nula).
+  - Probado en Linux con memoria simulada (UNLOCK y PROGRESS OK). Windows: falta confirmar en partida real ("HOOKED" en launcher.log).
+- Launcher: Extras -> LOGROS (lista, puntos, progreso), descarga con login2 + patch (no guarda contrasena ni token) -> data/logros/ra_3511.json,
+  iconos en ui/assets/logros, progreso en data/logros/progreso.json, traducciones en resources/app/logros_traducciones.json.
+  Solo versiones us y es (la ES UNDUB tiene ID ULES01513 pero el mismo codigo que USA). Opciones achievements / achToast.
+- GitHub: job "nativos" compila t3b_logros para Linux y Windows. Release v1.1.0 publicado.
+  PENDIENTE: borrar a mano los assets sueltos t3b_logros y t3b_logros.exe del release v1.1.0 (ya corregido el workflow).
