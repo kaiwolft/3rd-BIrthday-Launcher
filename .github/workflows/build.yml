@@ -20,11 +20,26 @@ env:
   PATCH_MD5: '6537bb47f88eece50d126cf40fd24ea5'
 
 jobs:
+  nativos:
+    name: Motor de logros (Linux y Windows)
+    runs-on: ubuntu-22.04          # glibc 2.35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar t3b_logros (rcheevos v11.6.0)
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q gcc-mingw-w64-x86-64 > /dev/null
+          sh herramientas/logros/build.sh nativos
+      - uses: actions/upload-artifact@v4
+        with: { name: nativos, path: nativos/ }
+
   windows:
     name: Instalador de Windows
+    needs: nativos
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: nativos, path: nativos }
       - name: Armar instalador
         shell: pwsh
         run: |
@@ -48,6 +63,8 @@ jobs:
           $P = "$W\payload"
           New-Item -ItemType Directory -Force "$P\launcher\app", "$P\herramientas", "$P\parche", "$P\steam" | Out-Null
           Copy-Item launcher\resources\app\* "$P\launcher\app\"
+          Copy-Item nativos\t3b_logros.exe "$P\launcher\app\"
+          if (-not (Test-Path "$P\launcher\app\t3b_logros.exe")) { throw 't3b_logros.exe' }
           Copy-Item launcher\ui "$P\launcher\ui" -Recurse
           $pv = $env:PPSSPP.Replace('.', '_')
           Invoke-WebRequest "https://www.ppsspp.org/files/$pv/ppsspp_win.zip" -OutFile "$tmp\ppsspp.zip" -Headers @{ 'User-Agent' = 'Mozilla/5.0' }
@@ -80,9 +97,12 @@ jobs:
 
   linux:
     name: AppImage de Linux
+    needs: nativos
     runs-on: ubuntu-22.04          # glibc 2.35: funciona en Ubuntu 22.04 / Debian 12 / Mint 21 / Steam Deck o más nuevos
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: nativos, path: nativos }
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
       - name: Armar AppImage
@@ -93,6 +113,8 @@ jobs:
           curl -sSL -o work/electron.zip "https://github.com/electron/electron/releases/download/v$ELECTRON/electron-v$ELECTRON-linux-x64.zip"
           unzip -q work/electron.zip -d work/electron
           cp launcher/resources/app/main.js launcher/resources/app/preload.js launcher/resources/app/package.json work/app/
+          cp launcher/resources/app/logros_traducciones.json work/app/ 2>/dev/null || true
+          cp nativos/t3b_logros work/app/ && chmod +x work/app/t3b_logros
           # xdelta3 (para crear la versión en español)
           sudo apt-get update -q && sudo apt-get install -y -q xdelta3 > /dev/null
           cp "$(command -v xdelta3)" work/tools/xdelta3 && chmod +x work/tools/xdelta3
@@ -107,7 +129,7 @@ jobs:
             "trees": [
               { "src": "work/electron", "dst": "", "exclude": ["resources/default_app.asar"], "exec": ["electron", "chrome-sandbox", "chrome_crashpad_handler"] },
               { "src": "instalador/app", "dst": "resources/app" },
-              { "src": "work/app", "dst": "payload/launcher/app" },
+              { "src": "work/app", "dst": "payload/launcher/app", "exec": ["t3b_logros"] },
               { "src": "launcher/ui", "dst": "payload/launcher/ui" },
               { "src": "work/tools", "dst": "payload/herramientas", "exec": ["xdelta3"] },
               { "src": "work/parche", "dst": "payload/parche" },

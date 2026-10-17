@@ -29,3 +29,5 @@ mods/
 *.cso
 *.AppImage
 *.log
+launcher/ui/assets/logros/
+herramientas/logros/bin/

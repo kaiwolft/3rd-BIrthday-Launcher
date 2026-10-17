@@ -186,6 +186,7 @@ function state() {
   const r = receta();
   return {
     config: cfg,
+    logros: achPublic(),
     fullscreen: !!(win && win.isFullScreen()),
     ppssppOk: ppOk(),
     platform: process.platform,
@@ -557,6 +558,133 @@ function nextToast() {
   setTimeout(() => { if (toastBusy && id === toastSeq) { toastBusy = false; nextToast(); } }, 9000);
 }
 
+// ---------------- logros: set oficial de RetroAchievements (juego 3511) evaluado sin conexión por t3b_logros
+// Funciona con la versión americana y con la española (UNDUB, mismo código del juego). La japonesa usa otras direcciones.
+const RA_GAME = 3511;
+const LOGROS = path.join(DATA, 'logros');
+const RA_SET = path.join(LOGROS, 'ra_' + RA_GAME + '.json');
+const PROG = path.join(LOGROS, 'progreso.json');
+const TRAD = path.join(LOGROS, 'traducciones.json');
+const BADGES = path.join(UI, 'assets', 'logros');
+const ACH_KINDS = ['us', 'es'];
+let achSet = null, achProc = null, progTimer = null;
+let prog = readJson(PROG, { unlocked: {}, progress: {} });
+function loadSet() {
+  achSet = readJson(RA_SET, null);
+  if (achSet && !Array.isArray(achSet.achievements)) achSet = null;
+  // el servidor añade avisos propios (id >= 100000000 o 0 puntos): no son logros del juego
+  if (achSet) achSet.achievements = achSet.achievements.filter((a) => a.id < 100000000 && a.points > 0);
+  return achSet;
+}
+const saveProg = () => { try { fs.mkdirSync(LOGROS, { recursive: true }); fs.writeFileSync(PROG, JSON.stringify(prog)); } catch (e) { log('progreso: ' + e.message); } };
+const saveProgSoon = () => { if (!progTimer) progTimer = setTimeout(() => { progTimer = null; saveProg(); }, 3000); };
+const tradAll = () => Object.assign({}, readJson(path.join(__dirname, 'logros_traducciones.json'), {}), readJson(TRAD, {}));
+function achPublic() {
+  if (!loadSet()) return null;
+  return {
+    game: achSet.game, kinds: ACH_KINDS,
+    list: achSet.achievements.map((a) => ({ id: a.id, title: a.title, description: a.description, points: a.points, badge: badgeUrl(a, false), lock: badgeUrl(a, true), type: a.type })),
+    unlocked: prog.unlocked, progress: prog.progress, tr: tradAll()
+  };
+}
+function achText(a) {
+  const tr = tradAll(), lang = cfg.ui || 'es';
+  const t = tr[lang] && tr[lang][a.id];
+  return t ? { title: t[0] || a.title, description: t[1] || a.description } : { title: a.title, description: a.description };
+}
+function badgeUrl(a, locked) {
+  const f = (a.badge || '') + (locked ? '_lock' : '') + '.png';
+  return a.badge && exists(path.join(BADGES, f)) ? 'assets/logros/' + f : '';
+}
+function unlock(id) {
+  if (!achSet || prog.unlocked[id]) return;
+  const a = achSet.achievements.find((x) => x.id === id);
+  if (!a) return;
+  prog.unlocked[id] = new Date().toISOString();
+  delete prog.progress[id];
+  saveProg();
+  log('LOGRO ' + id + ' ' + a.title);
+  const tx = achText(a);
+  showAchievement({ title: tx.title, description: tx.description, points: a.points, badge: badgeUrl(a, false) });
+  send('logro', { id, date: prog.unlocked[id] });
+}
+
+// Descarga del set (una sola vez) con la cuenta de RetroAchievements del usuario.
+// No se guardan ni la contraseña ni el token: solo la lista de logros y sus iconos.
+const RA_UA = "The3rdBirthdayLauncher/1.1 (Dionixu's Launcher)";
+async function raDownload(user, pass) {
+  const post = async (params) => {
+    const r = await net.fetch('https://retroachievements.org/dorequest.php', {
+      method: 'POST', headers: { 'User-Agent': RA_UA, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(params).toString()
+    });
+    return r.json();
+  };
+  send('raProgress', { step: 'login' });
+  const login = await post({ r: 'login2', u: user, p: pass });
+  if (!login || !login.Success || !login.Token) throw new Error((login && login.Error) || 'login');
+  send('raProgress', { step: 'set' });
+  const j = await post({ r: 'patch', u: login.User || user, t: login.Token, g: String(RA_GAME) });
+  if (!j || !j.Success || !j.PatchData) throw new Error((j && j.Error) || 'patch');
+  const p = j.PatchData;
+  const list = (p.Achievements || []).filter((a) => a.Flags === 3).map((a) => ({
+    id: a.ID, title: a.Title, description: a.Description, points: a.Points, badge: a.BadgeName, type: a.Type, author: a.Author, memaddr: a.MemAddr }));
+  if (!list.length) throw new Error('el set no tiene logros');
+  fs.mkdirSync(LOGROS, { recursive: true });
+  fs.writeFileSync(RA_SET, JSON.stringify({ game: { id: p.ID, title: p.Title, icon: p.ImageIcon }, achievements: list }, null, 1));
+  fs.mkdirSync(BADGES, { recursive: true });
+  let done = 0;
+  for (const a of list) {
+    for (const suf of ['', '_lock']) {
+      const f = path.join(BADGES, a.badge + suf + '.png');
+      if (exists(f)) continue;
+      try {
+        const r = await net.fetch('https://media.retroachievements.org/Badge/' + a.badge + suf + '.png', { headers: { 'User-Agent': RA_UA } });
+        if (r.ok) fs.writeFileSync(f, Buffer.from(await r.arrayBuffer()));
+      } catch (e) {}
+    }
+    send('raProgress', { step: 'badges', done: ++done, total: list.length });
+  }
+  log('Set de logros descargado: ' + list.length + ' (' + p.Title + ')');
+}
+const helper = (name) => {   // binarios propios junto a main.js (en Linux se asegura el permiso de ejecución)
+  const f = path.join(__dirname, IS_WIN ? name + '.exe' : name);
+  if (!IS_WIN && exists(f)) { try { fs.chmodSync(f, 0o755); } catch (e) {} }
+  return f;
+};
+function startAch(pid, kind) {
+  stopAch();
+  if (cfg.achievements === 'off' || !ACH_KINDS.includes(kind) || !loadSet()) return;
+  const exe = helper('t3b_logros');
+  if (!exists(exe)) { log('Falta ' + exe); return; }
+  const defs = achSet.achievements.filter((a) => a.memaddr && !prog.unlocked[a.id]).map((a) => a.id + '\t' + a.memaddr).join('\n') + '\n';
+  const f = path.join(LOGROS, 'activos.txt');
+  fs.mkdirSync(LOGROS, { recursive: true });
+  fs.writeFileSync(f, defs);
+  const p = spawn(exe, [String(pid), f], { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
+  achProc = p;
+  let buf = '';
+  p.stdout.on('data', (d) => {
+    buf += d.toString(); let i;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const w = buf.slice(0, i).trim().split(' '); buf = buf.slice(i + 1);
+      if (w[0] === 'UNLOCK') unlock(parseInt(w[1], 10));
+      else if (w[0] === 'PROGRESS') { prog.progress[w[1]] = [parseInt(w[2], 10), parseInt(w[3], 10)]; saveProgSoon(); }
+      else if (w[0]) log('logros: ' + w.join(' '));
+    }
+  });
+  p.stderr.on('data', (d) => log('logros(err): ' + d.toString().trim()));
+  p.on('exit', (c) => { log('motor de logros terminado (' + c + ')'); if (achProc === p) achProc = null; });
+  p.on('error', (e) => { log('motor de logros: ' + e.message); if (achProc === p) achProc = null; });
+}
+function stopAch() {
+  if (progTimer) { clearTimeout(progTimer); progTimer = null; saveProg(); }
+  if (!achProc) return;
+  const p = achProc; achProc = null;
+  try { p.stdin.write('QUIT\n'); } catch (e) {}
+  setTimeout(() => { try { p.kill(); } catch (e) {} }, 800);
+}
+
 // ---------------- puente de mando + menú de pausa
 const sendExit = (type, data) => { try { if (alive(exitWin)) exitWin.webContents.send('msg', JSON.stringify({ type, data })); } catch (e) {} };
 const bridgeCmd = (s) => { try { if (bridge && bridge.exitCode === null && bridge.stdin && bridge.stdin.writable && !bridge.stdin.destroyed) bridge.stdin.write(s + '\n', () => {}); } catch (e) {} };
@@ -724,6 +852,7 @@ async function play(version, iconSet) {
       log('Cámara libre activada');
     }
     setGameVolume(gvol);
+    startAch(game.pid, iso.kind);
     const myGame = game;
     waitGameWindow(game.pid).then((ok) => {
       if (game !== myGame) return;
@@ -741,7 +870,7 @@ async function play(version, iconSet) {
         setTimeout(() => { if (game === myGame) bridgeCmd('FOCUSPID ' + myGame.pid); }, 1200);
       }, 500);
     });
-    game.on('error', (e) => { log('Error al iniciar PPSSPP: ' + e.message); game = null; stopBridge(); if (alive(win)) { win.setAlwaysOnTop(false); win.show(); } send('error', e.message); });
+    game.on('error', (e) => { log('Error al iniciar PPSSPP: ' + e.message); game = null; stopBridge(); stopAch(); if (alive(win)) { win.setAlwaysOnTop(false); win.show(); } send('error', e.message); });
     game.on('exit', (code) => {
       const secs = Math.round((Date.now() - gameStart) / 1000);
       log('PPSSPP cerrado (código ' + code + ', ' + secs + ' s)');
@@ -752,6 +881,7 @@ async function play(version, iconSet) {
       }
       game = null;
       stopBridge();
+      stopAch();
       if (exitOpen) { exitOpen = false; if (alive(exitWin)) exitWin.hide(); sendExit('hide'); }
       if (!alive(win)) return;
       win.show(); if (cfg.launcherFull !== 'off') win.setFullScreen(true); win.focus();
@@ -791,6 +921,12 @@ ipcMain.on('msg', (_e, raw) => {
       case 'exitNo': closeExit(false); break;
       case 'gvol': cfg.gvol = String(Math.max(0, Math.min(100, parseInt(m.value, 10) || 0))); saveCfg(); setGameVolume(cfg.gvol); send('cfgPatch', { gvol: cfg.gvol }); break;
       case 'achTest': showAchievement({ title: m.title || 'Episodio 1', description: m.description || 'Has completado el episodio.', mark: m.mark || '1' }); break;
+      case 'raLogin':
+        raDownload(String(m.user || ''), String(m.pass || ''))
+          .then(() => { send('raDone', { ok: true }); send('state', state()); })
+          .catch((e) => { log('RetroAchievements: ' + e.message); send('raDone', { ok: false, error: e.message }); });
+        break;
+      case 'achReset': prog = { unlocked: {}, progress: {} }; saveProg(); send('state', state()); break;
       case 'toastDone': toastBusy = false; if (toastQueue.length) nextToast(); else if (toastWin && !toastWin.isDestroyed()) toastWin.hide(); break;
       case 'device': if (m.value === 'kb' || m.value === 'pad') { cfg.lastDevice = m.value; saveCfg(); } break;
     }
@@ -845,6 +981,6 @@ else {
     setTimeout(() => { if (!alive(exitWin)) createExitWindow(); if (!alive(toastWin)) createToastWindow(); }, 2500);
     log('Launcher iniciado. PPSSPP: ' + paths.ppsspp);
   });
-  app.on('before-quit', () => stopBridge());
+  app.on('before-quit', () => { stopBridge(); stopAch(); });
   app.on('window-all-closed', () => app.quit());
 }

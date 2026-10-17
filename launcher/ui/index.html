@@ -268,6 +268,19 @@ body.fs #drag,body.fs .wb{display:none}
 .cred p{font-size:14.5px;line-height:21px;color:#cfcdc9}
 .cred p small{color:#7f838a;font-size:12.5px}
 .tools{display:flex;gap:12px;margin-bottom:16px}
+.achSum{display:flex;align-items:center;gap:22px;margin-bottom:16px;padding:12px 16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)}
+.achSum b{font-family:var(--type);font-size:26px;letter-spacing:2px;color:#f0eeea}.achSum span{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:#8a8e94}
+.achSum .bar{flex:1;height:6px;background:rgba(255,255,255,.08)}.achSum .bar i{display:block;height:100%;background:linear-gradient(90deg,#8d0f1d,var(--red-hi,#ff3346))}
+.ach{display:flex;align-items:center;gap:16px;min-height:72px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,.05)}
+.ach img,.ach .ph0{flex:none;width:56px;height:56px;background:#1a0205;border:1px solid rgba(255,255,255,.12)}
+.ach.lk img{filter:grayscale(1) brightness(.55)}.ach .l{flex:1;min-width:0}.ach .l b{display:block;font-size:16px;color:#e8e6e2}.ach.lk .l b{color:#9a9ea4}
+.ach .l span{display:block;font-size:13.5px;color:#8a8e94;margin-top:2px}.ach .pt{font-family:var(--mono);font-size:13px;letter-spacing:1px;color:#c9c9c9;text-align:right;min-width:92px}
+.ach .pt small{display:block;color:#7a7e84;font-size:11px;margin-top:3px}.ach.ok .pt{color:var(--red-hi,#ff3346)}
+.achNote{font-size:12.5px;color:#7a7e84;margin:2px 0 14px;line-height:18px}
+.dlg .fld{display:flex;flex-direction:column;gap:10px;margin:14px 0 6px}
+.dlg .fld input{height:42px;padding:0 12px;background:#0d0e11;border:1px solid rgba(255,255,255,.18);color:#eee;font-size:15px;font-family:var(--sans);outline:none;user-select:text}
+.dlg .fld input:focus,.dlg .fld input.focus{border-color:var(--red-hi,#ff3346)}
+.dlg .raSt{min-height:20px;font-family:var(--mono);font-size:12px;letter-spacing:1px;color:#9a9ea4;margin-top:6px}
 
 /* pie */
 #foot{position:absolute;left:34px;right:34px;bottom:0;height:56px;display:flex;align-items:center;gap:20px;font-family:var(--mono);font-size:12px;letter-spacing:2.2px;color:#7c8087}
@@ -464,6 +477,12 @@ body.fs #drag,body.fs .wb{display:none}
     <h4 data-i="qT"></h4><p data-i="qD"></p>
     <div class="bt"><button class="btnline" data-nav data-act="quitYes"><span data-i="qY"></span></button><button class="btnline" data-nav data-act="quitNo"><span data-i="qN"></span></button></div>
   </div></div>
+  <div class="dlg" id="dlgRa"><div class="bx">
+    <h4 data-i="raT"></h4><p data-i="raD"></p>
+    <div class="fld"><input id="raUser" data-nav autocomplete="username" spellcheck="false"><input id="raPass" data-nav type="password" autocomplete="current-password"></div>
+    <div class="raSt" id="raSt"></div>
+    <div class="bt"><button class="btnline red" data-nav data-act="raGo"><span data-i="raGo"></span></button><button class="btnline" data-nav data-act="raNo"><span data-i="qN"></span></button></div>
+  </div></div>
   <div class="lbx" id="lbx"><img id="lbxImg" alt=""></div>
 
   <!-- INTRO -->
@@ -540,7 +559,7 @@ body.fs #drag,body.fs .wb{display:none}
       pInfoMiss: 'Pon tu ISO americana o europea original en la carpeta <b>juego</b> y pulsa ACTUALIZAR en Extras.',
       launchWho: 'AYA BREA // CTI', lPrep: 'Preparando PPSSPP…', lApply: (f) => `Aplicando el parche al español desde tu ISO ${f}…`, lVerify: 'Verificando la ISO en español…',
       lOpen: 'Abriendo el juego…', lScan: (f) => `Identificando ${f}…`,
-      tGfx: 'Gráficos', tSnd: 'Sonido', tCtl: 'Controles', tLau: 'Launcher', tMods: 'Mods', tGal: 'Galería', tCred: 'Créditos',
+      tGfx: 'Gráficos', tSnd: 'Sonido', tCtl: 'Controles', tLau: 'Launcher', tMods: 'Mods', tGal: 'Galería', tCred: 'Créditos', tAch: 'Logros', gAch: 'LOGROS',
       gGfx: 'IMAGEN', gQual: 'CALIDAD', gDev: 'HERRAMIENTAS', gSnd: 'JUEGO', gLm: 'LAUNCHER', gIn: 'DISPOSITIVOS', gCam: 'CÁMARA', gMap: 'ASIGNACIÓN DE BOTONES', gL: 'GENERAL',
       o: {
         backend: ['Motor gráfico', 'Vulkan es el más rápido; DirectX 11 si tienes problemas'],
@@ -567,7 +586,8 @@ body.fs #drag,body.fs .wb{display:none}
         reset: ['Restablecer controles', 'Vuelve a la asignación por defecto'],
         ui: ['Idioma', 'Idioma de este launcher'], intro: ['Intro', 'Animación al abrir el launcher'],
         anim: ['Animaciones', 'Movimiento del fondo y efectos'], ash: ['Ceniza', 'Partículas flotando en el fondo'],
-        launcherFull: ['Launcher en pantalla completa', 'F11 cambia en cualquier momento']
+        launcherFull: ['Launcher en pantalla completa', 'F11 cambia en cualquier momento'],
+        achievements: ['Logros', 'Set oficial de RetroAchievements, sin conexión (Español e Inglés)'], achToast: ['Aviso de logro en el juego', 'Muestra el logro arriba de la pantalla al conseguirlo']
       },
       v: { vulkan: 'VULKAN', dx11: 'DIRECTX 11', opengl: 'OPENGL', '720': '720p (3×)', '1080': '1080p (4×)', '1440': '1440p (6×)', '2160': '4K (8×)',
         full: 'COMPLETA', border: 'SIN BORDES', window: 'VENTANA', on: 'SÍ', off: 'NO', '1': 'NO', '2': '2×', '4': '4×', '8': '8×', '16': '16×',
@@ -582,6 +602,12 @@ body.fs #drag,body.fs .wb{display:none}
       noShots: 'Aún no hay capturas. Pulsa <code>F9</code> durante el juego para guardar una.',
       openMods: 'ABRIR CARPETA', openShots: 'ABRIR CARPETA', rescan: 'ACTUALIZAR', modOn: 'Mod activado', modOff: 'Mod desactivado',
       maqPlay: 'Maqueta: aquí se abriría el juego', err: 'Error',
+      raT: 'LOGROS · RETROACHIEVEMENTS', raD: 'Inicia sesión una vez con tu cuenta de retroachievements.org para descargar los logros del juego y sus iconos. No se guarda ni tu contraseña ni tu sesión: después los logros funcionan sin conexión.',
+      raUser: 'Usuario', raPass: 'Contraseña', raGo: 'DESCARGAR', raGet: 'DESCARGAR LOGROS', raUpd: 'ACTUALIZAR SET',
+      raLogin: 'Iniciando sesión…', raSet: 'Descargando el set…', raBadges: (a, b) => `Descargando iconos ${a}/${b}…`, raOk: 'Logros descargados', raFail: 'No se pudo descargar',
+      achNone: 'Aún no tienes los logros. Necesitas una cuenta gratuita de <code>retroachievements.org</code>: pulsa <b>DESCARGAR LOGROS</b>, inicia sesión una vez y listo.',
+      achNote: 'Se consiguen jugando en Español (UNDUB) o Inglés (USA), sin conexión: se guardan en este launcher, no en tu perfil de RetroAchievements. La versión japonesa no tiene logros.',
+      achPts: (a, b) => `${a} / ${b} PUNTOS`, achAt: (d) => new Date(d).toLocaleDateString('es'),
       parts: { texturas: 'TEXTURAS', trucos: 'TRUCOS', plugin: 'PLUGIN', ajustes: 'AJUSTES' }
     },
     en: { nHome: 'Home', nPlay: 'Play', nVer: 'Version', nSet: 'Settings', nExtra: 'Extras', nQuit: 'Quit', play: 'PLAY',
@@ -601,7 +627,7 @@ body.fs #drag,body.fs .wb{display:none}
       pInfoMiss: 'Put your original USA or Europe ISO in the <b>juego</b> folder and press REFRESH in Extras.',
       launchWho: 'AYA BREA // CTI', lPrep: 'Preparing PPSSPP…', lApply: (f) => `Applying the Spanish patch from your ${f} ISO…`, lVerify: 'Verifying the Spanish ISO…',
       lOpen: 'Opening the game…', lScan: (f) => `Identifying ${f}…`,
-      tGfx: 'Graphics', tSnd: 'Sound', tCtl: 'Controls', tLau: 'Launcher', tMods: 'Mods', tGal: 'Gallery', tCred: 'Credits',
+      tGfx: 'Graphics', tSnd: 'Sound', tCtl: 'Controls', tLau: 'Launcher', tMods: 'Mods', tGal: 'Gallery', tCred: 'Credits', tAch: 'Achievements', gAch: 'ACHIEVEMENTS',
       gGfx: 'PICTURE', gQual: 'QUALITY', gDev: 'TOOLS', gSnd: 'GAME', gLm: 'LAUNCHER', gIn: 'DEVICES', gCam: 'CAMERA', gMap: 'BUTTON MAPPING', gL: 'GENERAL',
       o: {
         backend: ['Graphics backend', 'Vulkan is fastest; DirectX 11 if you have issues'],
@@ -628,7 +654,8 @@ body.fs #drag,body.fs .wb{display:none}
         reset: ['Reset controls', 'Back to the default mapping'],
         ui: ['Language', 'Language of this launcher'], intro: ['Intro', 'Animation when the launcher opens'],
         anim: ['Animations', 'Background motion and effects'], ash: ['Ash', 'Particles floating in the background'],
-        launcherFull: ['Full-screen launcher', 'F11 toggles it at any time']
+        launcherFull: ['Full-screen launcher', 'F11 toggles it at any time'],
+        achievements: ['Achievements', 'Official RetroAchievements set, offline (Spanish and English)'], achToast: ['In-game achievement notice', 'Shows the achievement at the top of the screen']
       },
       v: { vulkan: 'VULKAN', dx11: 'DIRECTX 11', opengl: 'OPENGL', '720': '720p (3×)', '1080': '1080p (4×)', '1440': '1440p (6×)', '2160': '4K (8×)',
         full: 'FULL', border: 'BORDERLESS', window: 'WINDOW', on: 'YES', off: 'NO', '1': 'OFF', '2': '2×', '4': '4×', '8': '8×', '16': '16×',
@@ -643,6 +670,12 @@ body.fs #drag,body.fs .wb{display:none}
       noShots: 'No screenshots yet. Press <code>F9</code> while playing to save one.',
       openMods: 'OPEN FOLDER', openShots: 'OPEN FOLDER', rescan: 'REFRESH', modOn: 'Mod enabled', modOff: 'Mod disabled',
       maqPlay: 'Preview: the game would open here', err: 'Error',
+      raT: 'ACHIEVEMENTS · RETROACHIEVEMENTS', raD: 'Sign in once with your retroachievements.org account to download the game\'s achievements and their icons. Neither your password nor your session is stored: afterwards achievements work offline.',
+      raUser: 'Username', raPass: 'Password', raGo: 'DOWNLOAD', raGet: 'DOWNLOAD ACHIEVEMENTS', raUpd: 'UPDATE SET',
+      raLogin: 'Signing in…', raSet: 'Downloading the set…', raBadges: (a, b) => `Downloading icons ${a}/${b}…`, raOk: 'Achievements downloaded', raFail: 'Download failed',
+      achNone: 'You do not have the achievements yet. You need a free <code>retroachievements.org</code> account: press <b>DOWNLOAD ACHIEVEMENTS</b>, sign in once and you are done.',
+      achNote: 'Earned while playing in Spanish (UNDUB) or English (USA), offline: they are stored in this launcher, not on your RetroAchievements profile. The Japanese version has no achievements.',
+      achPts: (a, b) => `${a} / ${b} POINTS`, achAt: (d) => new Date(d).toLocaleDateString('en'),
       parts: { texturas: 'TEXTURES', trucos: 'CHEATS', plugin: 'PLUGIN', ajustes: 'SETTINGS' }
     }
   };
@@ -763,7 +796,7 @@ body.fs #drag,body.fs .wb{display:none}
     backend: ['vulkan', 'dx11', 'opengl'], res: ['720', '1080', '1440', '2160'], mode: ['full', 'border', 'window'], vsync: ['on', 'off'],
     aa: ['1', '2', '4', '8'], af: ['1', '4', '16'], fps: ['off', 'on'], dumpTex: ['off', 'on'], texUp: ['xbrz', 'mmpx', 'spline', 'off'], post: ['off', 'sharpen', 'fxaa', 'natural'], hdTex: ['on', 'off'], music: ['on', 'off'], sfx: ['on', 'off'],
     iconSet: ['xbox', 'kb'], autoControls: ['on', 'off'], kbCam: ['mouse', 'keys'], invert: ['off', 'on'], padInvert: ['off', 'on'], freecam: ['on', 'off'], camInvX: ['off', 'on'],
-    ui: ['es', 'en'], intro: ['on', 'off'], anim: ['on', 'off'], ash: ['on', 'off'], launcherFull: ['on', 'off']
+    ui: ['es', 'en'], intro: ['on', 'off'], anim: ['on', 'off'], ash: ['on', 'off'], launcherFull: ['on', 'off'], achievements: ['on', 'off'], achToast: ['on', 'off']
   };
   const SLIDERS = { gvol: [0, 100, 5, '%'], mvol: [0, 100, 5, '%'], sens: [0, 100, 5, ''] };
   const optRow = (k, extraAttr) => `<div class="opt" data-nav data-opt="${k}"${extraAttr || ''}></div>`;
@@ -836,7 +869,7 @@ body.fs #drag,body.fs .wb{display:none}
     if (setTab === 'gfx') h = `<div class="grp">${L.gGfx}</div>${optRow('backend')}${optRow('res')}${optRow('mode')}${optRow('vsync')}
       <div class="grp">${L.gQual}</div>${optRow('texUp')}${optRow('hdTex')}${optRow('post')}${optRow('aa')}${optRow('af')}<div class="grp">${L.gDev}</div>${optRow('fps')}${optRow('dumpTex')}`;
     if (setTab === 'snd') h = `<div class="grp">${L.gSnd}</div>${optRow('gvol')}<div class="grp">${L.gLm}</div>${optRow('music')}${optRow('mvol')}${optRow('sfx')}`;
-    if (setTab === 'lau') h = `<div class="grp">${L.gL}</div>${optRow('ui')}${optRow('intro')}${optRow('anim')}${optRow('ash')}${optRow('launcherFull')}`;
+    if (setTab === 'lau') h = `<div class="grp">${L.gL}</div>${optRow('ui')}${optRow('intro')}${optRow('anim')}${optRow('ash')}${optRow('launcherFull')}<div class="grp">${L.gAch}</div>${optRow('achievements')}${optRow('achToast')}`;
     if (setTab === 'ctl') {
       const K = kb(), P = pb(), keysCam = cfg.kbCam === 'keys';
       const acts = ['ls_up', 'ls_down', 'ls_left', 'ls_right', 'rs_up', 'rs_down', 'rs_left', 'rs_right', 'cross', 'circle', 'square', 'triangle', 'l', 'r', 'start', 'select', 'du', 'dd', 'dl', 'dr'];
@@ -860,8 +893,8 @@ body.fs #drag,body.fs .wb{display:none}
   };
 
   /* ───── EXTRAS ───── */
-  let xTab = 'gallery';
-  const X_TABS = [['gallery', 'tGal'], ['credits', 'tCred']];
+  let xTab = 'ach';
+  const X_TABS = [['ach', 'tAch'], ['gallery', 'tGal'], ['credits', 'tCred']];
   const renderExtras = () => {
     $('#xTabs').innerHTML = tabsHtml(X_TABS, xTab, 'data-xtab');
     let h = '';
@@ -871,6 +904,23 @@ body.fs #drag,body.fs .wb{display:none}
           <div class="l"><b>${esc(m.name)}</b>${m.version ? ` <span style="display:inline;color:#777;font-size:12px">v${esc(m.version)}</span>` : ''}<span>${esc(m.description || '')}${m.author ? ' · ' + esc(m.author) : ''}</span></div>
           <div class="pt">${(m.parts || []).map((p) => L.parts[p] || p).join(' · ')}</div><div class="tog${m.on ? ' on' : ''}"><i></i></div></div>`).join('')}</div>`
         : `<div class="empty">${L.noMods}</div>`;
+    }
+    if (xTab === 'ach') {
+      const A = H.logros;
+      if (!A || !A.list || !A.list.length) h = `<div class="tools"><button class="btnline red" data-nav data-act="raOpen">${L.raGet}</button></div><div class="empty">${L.achNone}</div>`;
+      else {
+        const tr = (A.tr && A.tr[cfg.ui || 'es']) || {}, un = A.unlocked || {}, pr = A.progress || {};
+        const got = A.list.filter((a) => un[a.id]), pts = A.list.reduce((t, a) => t + a.points, 0), gpts = got.reduce((t, a) => t + a.points, 0);
+        const order = A.list.slice().sort((a, b) => (un[b.id] ? 1 : 0) - (un[a.id] ? 1 : 0) || (un[a.id] && un[b.id] ? String(un[b.id]).localeCompare(String(un[a.id])) : 0));
+        h = `<div class="achSum"><b>${got.length} / ${A.list.length}</b><div class="bar"><i style="width:${Math.round(got.length * 100 / A.list.length)}%"></i></div><span>${L.achPts(gpts, pts)}</span>
+          <button class="btnline" data-nav data-act="raOpen">${L.raUpd}</button></div><div class="achNote">${L.achNote}</div>`;
+        h += order.map((a) => {
+          const t = tr[a.id] || [], ok = !!un[a.id], p = pr[a.id];
+          const img = (ok ? a.badge : a.lock || a.badge) ? `<img src="${esc(ok ? a.badge : a.lock || a.badge)}" alt="">` : '<div class="ph0"></div>';
+          const right = ok ? `${a.points} PTS<small>${esc(L.achAt(un[a.id]))}</small>` : `${a.points} PTS${p && p[1] ? `<small>${p[0]} / ${p[1]}</small>` : ''}`;
+          return `<div class="ach${ok ? ' ok' : ' lk'}" data-nav data-ach="${a.id}">${img}<div class="l"><b>${esc(t[0] || a.title)}</b><span>${esc(t[1] || a.description)}</span></div><div class="pt">${right}</div></div>`;
+        }).join('');
+      }
     }
     if (xTab === 'gallery') {
       h = `<div class="tools"><button class="btnline" data-nav data-act="openShots">${L.openShots}</button></div>`;
@@ -912,7 +962,7 @@ body.fs #drag,body.fs .wb{display:none}
   /* el lienzo y la página no deben desplazarse nunca (si no, todo queda corrido y el ratón no acierta) */
   const pin = () => { for (const el of [stage, $('#ui'), document.documentElement, document.body]) if (el.scrollTop || el.scrollLeft) { el.scrollTop = 0; el.scrollLeft = 0; } $$('.page').forEach((p) => { if (p.scrollTop || p.scrollLeft) { p.scrollTop = 0; p.scrollLeft = 0; } }); };
   addEventListener('scroll', (e) => { if (!(e.target instanceof Element) || !e.target.classList.contains('scroll')) pin(); }, true);
-  addEventListener('focusin', (e) => { if (e.target && e.target.blur) e.target.blur(); pin(); });
+  addEventListener('focusin', (e) => { if (e.target && e.target.tagName !== 'INPUT' && e.target.blur) e.target.blur(); pin(); });
 
   /* ───── navegación espacial (mando / teclado) ───── */
   let focused = null;
@@ -934,7 +984,7 @@ body.fs #drag,body.fs .wb{display:none}
     if (curPage === 'settings') return $('#setBody [data-nav]') || $('#p-settings .tab.on');
     return $(`#p-${curPage} .tab.on`);
   };
-  const defaultFocus = () => { const d = $('.dlg.on'); if (d) return $('[data-act="quitNo"]', d); return contentDefault() || navOf(); };
+  const defaultFocus = () => { const d = $('.dlg.on'); if (d) return $('[data-act="quitNo"],[data-act="raNo"]', d); return contentDefault() || navOf(); };
   const geo = (items, dir) => {
     const a = focused.getBoundingClientRect(), ax = a.left + a.width / 2, ay = a.top + a.height / 2;
     let best = null, bs = 1e9;
@@ -969,6 +1019,7 @@ body.fs #drag,body.fs .wb{display:none}
     if (binding) { endBind(true); play('back'); return; }
     if ($('#lbx').classList.contains('on')) { $('#lbx').classList.remove('on'); play('back'); return; }
     if ($('#dlgQuit').classList.contains('on')) { closeQuit(); return; }
+    if ($('#dlgRa').classList.contains('on')) { closeRa(); return; }
     // B / ESC: soltar la selección y volver al menú lateral; desde el menú, a Inicio. Nunca abre "Salir".
     if (focused && !inNav(focused)) { play('back'); focusEl(navOf(), true); return; }
     if (curPage !== 'home') { play('back'); showPage('home', true); focusEl($(`#nav [data-page="home"]`), true); }
@@ -979,6 +1030,14 @@ body.fs #drag,body.fs .wb{display:none}
   };
 
   /* ───── acciones ───── */
+  let raBusy = false;
+  const openRa = () => { $('#raUser').placeholder = L.raUser; $('#raPass').placeholder = L.raPass; $('#raSt').textContent = ''; $('#dlgRa').classList.add('on'); play('open'); focusEl($('#raUser'), true); setTimeout(() => $('#raUser').focus(), 30); };
+  const closeRa = () => { if (raBusy) return; $('#raPass').value = ''; $('#dlgRa').classList.remove('on'); play('back'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); focusEl($('#p-extras .tab.on') || navOf(), true); };
+  const raGo = () => {
+    const u = $('#raUser').value.trim(), p = $('#raPass').value;
+    if (raBusy || !u || !p) { play('boo'); return; }
+    raBusy = true; $('#raSt').textContent = L.raLogin; post('raLogin', { user: u, pass: p }); play('ok');
+  };
   const openQuit = () => { $('#dlgQuit').classList.add('on'); play('open'); focusEl($('[data-act="quitNo"]'), true); };
   const closeQuit = () => { $('#dlgQuit').classList.remove('on'); play('back'); focusEl(defaultFocus(), true); };
   let leaving = false;
@@ -1033,6 +1092,7 @@ body.fs #drag,body.fs .wb{display:none}
     activate(el, e);
   });
   const activate = (el, ev) => {
+    if (el.tagName === 'INPUT') { el.focus(); return; }
     const d = el.dataset;
     if (d.page) { showPage(d.page); if (dev === 'pad') { const c = contentDefault(); if (c) focusEl(c, true); } return; }
     if (d.goto) { showPage(d.goto); return; }
@@ -1052,6 +1112,7 @@ body.fs #drag,body.fs .wb{display:none}
       el.classList.add('wait'); el.querySelector('span').textContent = d.col === 'kb' ? L.press : L.pressPad; play('open'); return;
     }
     if (d.mod) { const m = H.mods.find((x) => x.id === d.mod); if (m) { m.on = !m.on; post('mod', { id: m.id, on: m.on }); note(m.on ? L.modOn : L.modOff); play('ok'); renderExtras(); focusEl($(`[data-mod="${CSS.escape(m.id)}"]`), true); } return; }
+    if (d.ach) return;
     if (d.shot) { $('#lbxImg').src = 'pt://shots/' + encodeURI(d.shot); $('#lbx').classList.add('on'); play('open'); return; }
     switch (d.act) {
       case 'launch': launch(); break;
@@ -1064,6 +1125,9 @@ body.fs #drag,body.fs .wb{display:none}
       case 'openMods': post('openFolder', { which: 'mods' }); play('ok'); break;
       case 'openShots': post('openFolder', { which: 'capturas' }); play('ok'); break;
       case 'rescan': post('rescan'); scanning = { pct: null }; renderHome(); play('ok'); break;
+      case 'raOpen': openRa(); break;
+      case 'raGo': raGo(); break;
+      case 'raNo': closeRa(); break;
     }
   };
   stage.addEventListener('mouseover', (e) => { const el = e.target.closest('[data-nav]'); if (el && !binding && el.closest('#ui,.dlg.on')) focusEl(el); });
@@ -1095,6 +1159,12 @@ body.fs #drag,body.fs .wb{display:none}
     }
     if (launching || leaving) return;
     const k = e.key;
+    if (e.target && e.target.tagName === 'INPUT') {
+      if (k === 'Enter') { e.preventDefault(); if (e.target.id === 'raUser') { $('#raPass').focus(); focusEl($('#raPass'), true); } else raGo(); }
+      else if (k === 'Escape') { e.preventDefault(); closeRa(); }
+      else if (k === 'Tab') { e.preventDefault(); const o = e.target.id === 'raUser' ? $('#raPass') : $('#raUser'); o.focus(); focusEl(o, true); }
+      return;
+    }
     const dirs = { ArrowUp: 'UP', ArrowDown: 'DOWN', ArrowLeft: 'LEFT', ArrowRight: 'RIGHT' };
     if (dirs[k]) { e.preventDefault(); dirInput(dirs[k]); return; }
     if (k === 'Enter' || k === ' ') { e.preventDefault(); if (e.repeat) return; if (!focused || !navItems().includes(focused)) { focusEl(defaultFocus()); return; } activate(focused); return; }
@@ -1229,6 +1299,13 @@ body.fs #drag,body.fs .wb{display:none}
       case 'gameClosed': H.config.playtime = d.playtime; returned(); break;
       case 'error': note((L.err) + ': ' + d, true); if (launching) returned(); break;
       case 'cfgPatch': Object.assign(cfg, d); if (curPage === 'settings') renderSettings(); break;
+      case 'raProgress': $('#raSt').textContent = d.step === 'login' ? L.raLogin : d.step === 'set' ? L.raSet : L.raBadges(d.done, d.total); break;
+      case 'raDone':
+        raBusy = false;
+        if (d.ok) { $('#raPass').value = ''; $('#dlgRa').classList.remove('on'); note(L.raOk); play('ok'); xTab = 'ach'; if (curPage === 'extras') renderExtras(); }
+        else { $('#raSt').textContent = L.raFail + ': ' + (d.error || ''); play('boo'); }
+        break;
+      case 'logro': if (H.logros) { H.logros.unlocked = Object.assign({}, H.logros.unlocked, { [d.id]: d.date }); if (curPage === 'extras' && xTab === 'ach') renderExtras(); } break;
       case 'fullscreen': document.body.classList.toggle('fs', !!d); cfg.launcherFull = d ? 'on' : 'off'; try { localStorage.setItem('t3b_cfg', JSON.stringify(cfg)); } catch (e) {} if (curPage === 'settings' && setTab === 'lau') renderSettings(); break;
     }
   });
