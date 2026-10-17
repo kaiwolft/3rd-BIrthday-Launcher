@@ -301,3 +301,17 @@ NOTAS TECNICAS UTILES
   - las ventanas de pausa y avisos se crean 2,5 s despues,
   - el log muestra "Interfaz lista en N ms" para medirlo.
 - Al jugar: applyButtons copia texturas solo a la carpeta del juego que se abre y solo si cambiaron (antes ~60 MB por inicio).
+
+
+## Publicacion v1.0.0 (17-oct-2026)
+- Repositorio: https://github.com/kaiwolft/3rd-BIrthday-Launcher (README es/en/fr, aviso legal, creditos, Ko-fi, capturas).
+- Release v1.0.0 publicado por GitHub Actions (.github/workflows/build.yml, se dispara al cambiar VERSION):
+  - The_3rd_Birthday_Instalador_Windows_v1.0.0.zip (709 MB, PPSSPP 1.20.4 incluido)
+  - Instalar_The_3rd_Birthday-x86_64.AppImage (658 MB, usa el PPSSPP del usuario, Flatpak recomendado)
+- El instalador pide la ISO USA (ULUS-10567) y/o la japonesa (ULJM-05798), verificadas por MD5; con la USA crea el espanol UNDUB.
+- Parche en parche/partes (6 trozos de 95 MB, script 11); el workflow los une y verifica MD5 6537bb47f88eece50d126cf40fd24ea5.
+- Para una version nueva: corregir, actualizar NOTAS_RELEASE_vX.Y.Z.md / CHANGELOG.md y cambiar VERSION.
+- Steam en Linux: steam/agregar_a_steam.sh + agregar_a_steam.py (Python 3, VDF binario, Steam nativo/Flatpak/Steam Deck).
+  Tambien agregado a Fragile Dreams, The Last Story y Pandora's Tower (scripts, instalador, README). Astral Chain es solo Windows.
+- Carpeta final: script 12 ahora usa F:\Juegos de DIonis Con launcher personalizado (o E:\ si no hay F:).
+  El AGREGAR_A_STEAM.ps1 general usa su propia carpeta ($PSScriptRoot): sigue funcionando tras moverla a F:.
