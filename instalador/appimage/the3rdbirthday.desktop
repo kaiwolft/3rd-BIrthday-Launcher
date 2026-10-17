@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=The 3rd Birthday (Instalador)
+Comment=Dionixu's Launcher
+Exec=AppRun
+Icon=the3rdbirthday
+Categories=Game;
+Terminal=false

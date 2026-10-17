@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dionixu's Launcher — The 3rd Birthday</title>
+<style>
+@font-face{font-family:"T3B Type";src:url(fonts/SpecialElite-Regular.ttf) format("truetype")}
+@font-face{font-family:"T3B Mono";src:url(fonts/ShareTechMono-Regular.ttf) format("truetype")}
+@font-face{font-family:"T3B Sans";src:url(fonts/Barlow-Regular.ttf) format("truetype");font-weight:400}
+@font-face{font-family:"T3B Sans";src:url(fonts/Barlow-SemiBold.ttf) format("truetype");font-weight:600}
+:root{--ink:#ebe8e4;--ink-soft:#c4c1bd;--mute:#8d9198;--line:rgba(255,255,255,.16);--line-soft:rgba(255,255,255,.07);--panel:rgba(10,10,12,.92);
+  --red:#d3192c;--red-hi:#ff3346;--red-lo:#7d0d18;--ok:#7fc98a;--bad:#ff5a5a;
+  --display:"T3B Type","Special Elite",Georgia,serif;--mono:"T3B Mono",Consolas,monospace;--body:"T3B Sans","Barlow","Segoe UI",sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;user-select:none;background:#0b0b0d;font-family:var(--body);color:var(--ink)}
+html,body,*{cursor:-webkit-image-set(url(assets/cursor.png) 1x,url(assets/cursor@2x.png) 2x) 2 2,default!important}
+button,button *,label.chk,label.chk *,.lang{cursor:-webkit-image-set(url(assets/cursor_on.png) 1x,url(assets/cursor_on@2x.png) 2x) 2 2,pointer!important}
+button{font:inherit;color:inherit}
+button:focus,button:focus-visible{outline:none}
+#bg{position:fixed;inset:0;background:url(assets/art.jpg) 70% 40%/cover;filter:saturate(.8) brightness(.6)}
+#shade{position:fixed;inset:0;background:linear-gradient(90deg,rgba(11,11,13,.15) 0,rgba(11,11,13,.8) 38%,#0b0b0d 80%),linear-gradient(180deg,rgba(11,11,13,.4),transparent 30%,transparent 70%,rgba(11,11,13,.9))}
+#scan{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px)}
+.frame1{position:fixed;inset:10px;border:1px solid var(--line);pointer-events:none}
+#drag{position:fixed;left:0;top:0;right:110px;height:42px;-webkit-app-region:drag;z-index:5}
+.winbtns{position:fixed;top:20px;right:28px;display:flex;gap:4px;z-index:6}
+.iconbtn{width:34px;height:30px;border:0;background:transparent;border-radius:2px;display:flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+.iconbtn:hover{background:var(--line-soft);color:var(--ink)}
+#logo{position:fixed;left:34px;top:30px;width:250px;pointer-events:none;filter:drop-shadow(0 4px 14px rgba(0,0,0,.7))}
+#brand{position:fixed;left:40px;top:190px;width:255px;font-family:var(--mono);font-size:11.5px;letter-spacing:2px;line-height:1.6;color:var(--mute)}
+#brand b{display:block;font-family:var(--display);font-size:19px;letter-spacing:2px;color:var(--ink);font-weight:400;margin-bottom:4px}
+#brand i{display:block;margin-top:14px;font-style:normal;color:var(--red-hi)}
+#panel{position:fixed;left:320px;top:170px;width:680px;height:430px;padding:22px 26px;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;gap:12px;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+#panel::before{content:"";position:absolute;left:-1px;top:-1px;width:120px;height:3px;background:var(--red)}
+#panel::after{content:"";position:absolute;right:-1px;bottom:-1px;width:60px;height:3px;background:var(--red)}
+#steps{position:fixed;left:320px;top:132px;display:flex;gap:6px}
+.dot{font-family:var(--mono);font-size:11px;letter-spacing:1.8px;color:var(--mute);padding:4px 10px;border-bottom:2px solid transparent}
+.dot.on{color:var(--ink);border-color:var(--red)}
+.dot.done{color:var(--ink-soft)}
+h2{margin:0;font-family:var(--display);font-size:22px;font-weight:400;letter-spacing:2.5px;color:var(--ink)}
+.sub{margin:0;font-size:15.5px;line-height:1.4;color:var(--ink-soft)}
+.scroll{flex:1;overflow-y:auto;padding-right:6px}
+.scroll::-webkit-scrollbar{width:6px}.scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.legal{font-size:15px;line-height:1.45;color:var(--ink-soft)}
+.legal b{color:var(--ink)}
+.legal h3{margin:4px 0 6px;font-family:var(--mono);font-weight:400;font-size:13px;letter-spacing:2px;color:var(--red-hi)}
+.legal ul{margin:6px 0 10px;padding-left:22px}
+.legal .warn{border-left:3px solid var(--red);background:rgba(211,25,44,.10);padding:8px 12px;margin:10px 0}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:8px;border-top:1px solid var(--line-soft)}
+.btn{min-width:150px;height:40px;padding:0 18px;border:1px solid var(--line);background:transparent;font-family:var(--mono);font-size:13px;letter-spacing:2.4px;color:var(--ink-soft)}
+.btn:hover{border-color:var(--red-hi);color:var(--ink)}
+.btn.main{color:#fff;background:linear-gradient(180deg,var(--red),var(--red-lo));border-color:var(--red)}
+.btn.main:hover{box-shadow:0 0 18px rgba(255,51,70,.45)}
+.btn:disabled{opacity:.35;pointer-events:none}
+label.chk{display:flex;align-items:center;gap:10px;font-size:15.5px;color:var(--ink)}
+label.chk input{width:17px;height:17px;accent-color:var(--red)}
+.langs{display:flex;gap:14px;margin-top:6px}
+.lang{flex:1;height:96px;border:1px solid var(--line);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--ink)}
+.lang small{font-family:var(--body);font-size:14px;letter-spacing:0;color:var(--mute)}
+.lang:hover{border-color:var(--red-hi)}
+.lang.on{background:linear-gradient(180deg,var(--red),var(--red-lo));border-color:var(--red)}.lang.on small{color:rgba(255,255,255,.8)}
+.field{display:grid;grid-template-columns:170px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.field .lbl{font-family:var(--mono);font-size:12.5px;letter-spacing:1.4px;color:var(--ink)}
+.field .lbl small{display:block;font-family:var(--body);font-size:13px;letter-spacing:0;color:var(--mute)}
+.path{min-height:34px;padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:14px;word-break:break-all;color:var(--ink)}
+.path.empty{color:var(--mute);font-style:italic}
+.state{grid-column:2/4;font-family:var(--mono);font-size:11.5px;letter-spacing:1.2px;margin-top:-4px}
+.state.ok{color:var(--ok)} .state.bad{color:var(--bad)} .state.wait{color:var(--mute)}
+.small{font-size:14px;color:var(--ink-soft);margin:4px 0}
+.bar{height:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);position:relative;overflow:hidden}
+.bar>div{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--red-lo),var(--red-hi));transition:width .6s ease}
+.bar>div::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,220,220,.35) 50%,transparent 70%);background-size:250% 100%;animation:sheen 1.8s ease-in-out infinite}
+@keyframes sheen{from{background-position:120% 0}to{background-position:-120% 0}}
+#stepTxt{font-family:var(--mono);font-size:14px;letter-spacing:1.6px;color:var(--ink)}
+#logBox{flex:1;overflow-y:auto;font-family:var(--mono);font-size:11.5px;line-height:1.45;color:var(--ink-soft);background:rgba(0,0,0,.35);border:1px solid var(--line-soft);padding:8px;white-space:pre-wrap;word-break:break-all}
+.big{font-family:var(--display);font-size:30px;letter-spacing:3px;color:var(--ink);text-align:center;margin-top:24px}
+.center{text-align:center}
+.err{color:var(--bad);font-size:16px}
+.view{display:none;flex:1;flex-direction:column;gap:12px;min-height:0}
+.view.on{display:flex;animation:viewIn .3s ease}
+@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="bg"></div><div id="shade"></div><div id="scan"></div>
+<div class="frame1"></div>
+<div id="drag"></div>
+<div class="winbtns">
+  <button class="iconbtn" id="bMin" aria-label="—"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M1 7h12" stroke="currentColor" stroke-width="1.3"/></svg></button>
+  <button class="iconbtn" id="bClose" aria-label="×"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.3"/></svg></button>
+</div>
+<img id="logo" src="assets/logo.png" alt="The 3rd Birthday">
+<div id="brand"><b>DIONIXU'S LAUNCHER</b><span id="tSub"></span><i id="pfNote"></i></div>
+<div id="steps"></div>
+
+<div id="panel">
+  <section class="view on" data-v="lang">
+    <h2 data-t="langTitle"></h2>
+    <p class="sub" data-t="langSub"></p>
+    <div class="langs">
+      <button class="lang" data-l="es">Español<small>Instalar en español</small></button>
+      <button class="lang" data-l="en">English<small>Install in English</small></button>
+    </div>
+    <div style="flex:1"></div>
+    <div class="foot"><span></span><button class="btn main" data-next data-t="next"></button></div>
+  </section>
+  <section class="view" data-v="legal">
+    <h2 data-t="legalTitle"></h2>
+    <div class="scroll legal" id="legalTxt"></div>
+    <label class="chk"><input type="checkbox" id="accept"><span data-t="accept"></span></label>
+    <div class="foot"><button class="btn" data-back data-t="back"></button><button class="btn main" data-next id="legalNext" data-t="next" disabled></button></div>
+  </section>
+  <section class="view" data-v="files">
+    <h2 data-t="filesTitle"></h2>
+    <p class="sub" data-t="filesSub"></p>
+    <div class="scroll" id="fields"></div>
+    <div class="foot"><button class="btn" data-back data-t="back"></button><button class="btn main" data-next id="filesNext" data-t="next" disabled></button></div>
+  </section>
+  <section class="view" data-v="dest">
+    <h2 data-t="destTitle"></h2>
+    <p class="sub" data-t="destSub"></p>
+    <div class="field"><span class="lbl" data-t="destLbl"></span><div class="path" id="destPath"></div><button class="btn" id="destPick" data-t="browse"></button></div>
+    <p class="small" id="spaceTxt"></p>
+    <label class="chk"><input type="checkbox" id="optCopy" checked><span data-t="optCopy"></span></label>
+    <label class="chk" id="rowEs"><input type="checkbox" id="optEs" checked><span data-t="optEs"></span></label>
+    <label class="chk"><input type="checkbox" id="optDesk" checked><span data-t="optDesk"></span></label>
+    <label class="chk"><input type="checkbox" id="optMenu" checked><span data-t="optMenu"></span></label>
+    <div style="flex:1"></div>
+    <div class="foot"><button class="btn" data-back data-t="back"></button><button class="btn main" id="goInstall" data-t="install"></button></div>
+  </section>
+  <section class="view" data-v="run">
+    <h2 data-t="runTitle"></h2>
+    <div id="stepTxt"></div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div id="logBox"></div>
+    <div class="foot"><span class="small" data-t="runNote"></span><span id="pct" style="font-family:var(--mono);letter-spacing:1px">0%</span></div>
+  </section>
+  <section class="view" data-v="done">
+    <div class="big" data-t="doneTitle"></div>
+    <p class="sub center" data-t="doneSub"></p>
+    <p class="center small" id="countdown"></p>
+    <div style="flex:1"></div>
+    <div class="foot"><button class="btn" id="openFolder" data-t="openFolder"></button><button class="btn main" id="launchNow" data-t="launch"></button></div>
+  </section>
+  <section class="view" data-v="fail">
+    <h2 data-t="failTitle"></h2>
+    <p class="err" id="failTxt"></p>
+    <p class="small" data-t="failSub"></p>
+    <div style="flex:1"></div>
+    <div class="foot"><button class="btn" id="failBack" data-t="back"></button><button class="btn" id="failClose" data-t="close"></button></div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const host = window.ptHost;
+  const DIRNAME = 'The 3rd Birthday';
+  const $ = (id) => document.getElementById(id);
+  const send = (cmd, extra) => host && host.postMessage(JSON.stringify(Object.assign({ cmd }, extra || {})));
+  const sfx = {}; ['move', 'ok', 'back', 'start'].forEach((n) => { sfx[n] = new Audio('assets/sfx/' + n + '.ogg'); sfx[n].volume = .3; });
+  const play = (n) => { try { sfx[n].currentTime = 0; sfx[n].play().catch(() => {}); } catch (e) {} };
+
+  const S = {
+    es: {
+      sub: 'INSTALADOR · THE 3RD BIRTHDAY', steps: ['IDIOMA', 'AVISO', 'TU COPIA', 'DESTINO', 'INSTALACIÓN'],
+      langTitle: 'IDIOMA', langSub: 'Elige el idioma del instalador y del launcher. Puedes cambiarlo después en Configuración.',
+      next: 'SIGUIENTE', back: 'ATRÁS', browse: 'EXAMINAR', install: 'INSTALAR', close: 'CERRAR',
+      legalTitle: 'AVISO IMPORTANTE', accept: 'He leído el aviso. Tengo mi propia copia original de The 3rd Birthday.',
+      legal: `<h3>ESTE INSTALADOR NO INCLUYE EL JUEGO</h3>
+<p>Para instalar <b>The 3rd Birthday</b> necesitas <b>tu propia copia original y legal</b> del juego de PSP. Elige la que prefieras (o las dos):</p>
+<ul><li><b>Versión americana (USA)</b> · ULUS-10567 — juega en <b>inglés</b> y, con el parche integrado, en <b>español con voces japonesas (UNDUB)</b>.</li>
+<li><b>Versión japonesa</b> · ULJM-05798 — juega en <b>japonés</b>, tal como salió en Japón.</li></ul>
+<p>La imagen ISO debe venir de <b>tu UMD</b> (copiada con tu propia PSP). Se comprueba que coincida exactamente con el disco original (MD5 de Redump). La versión europea no sirve para este instalador.</p>
+<p><b>La traducción al español ya viene integrada:</b> el instalador genera la versión en español a partir de tu ISO americana. Traducción de <b>Traducciones del Tío Victor</b> (SkyBladeCloud, el_capo, Ventus, auron, Akareh, Axxel, Vash, Phoenix, Joghi, eliden, IlDucci).</p>
+<div class="warn"><b>Solo funciona con tu copia oficial.</b> Si la imagen no coincide con el disco original sin modificar, la instalación se detiene. No se aceptan CSO ni ISOs ya parcheadas.</div>
+<div class="warn"><b>No a la piratería.</b> Dionixu's Launcher no fomenta, no acepta y no da soporte a la piratería. No descargues ni compartas imágenes de juegos.</div>
+<p>The 3rd Birthday © 2010–2011 Square Enix Co., Ltd. Diseño de personajes: Tetsuya Nomura. Este es un proyecto de aficionados sin ánimo de lucro, no afiliado ni respaldado por Square Enix. Usa PPSSPP (GPL 2.0+) y xdelta3.</p>`,
+      filesTitle: 'TU COPIA ORIGINAL', filesSub: 'Elige la ISO americana, la japonesa o las dos. Se verifican al momento (unos segundos cada una).',
+      fUS: 'VERSIÓN AMERICANA', fUSs: 'USA · ULUS-10567 · inglés + español', fJP: 'VERSIÓN JAPONESA', fJPs: 'ULJM-05798 · japonés', fPP: 'TU PPSSPP', fPPs: 'Linux: Flatpak o paquete',
+      none: 'Sin seleccionar (opcional)', checking: 'COMPROBANDO… {0}%', okId: '✓ {0} ORIGINAL VERIFICADA', badId: '✗ NO COINCIDE CON EL DISCO ORIGINAL', wrongKind: '✗ ESTA ES LA {0}, NO LA {1}',
+      ppHint: 'Detectado: {0}', ppNone: 'Instala PPSSPP: flatpak install flathub org.ppsspp.PPSSPP (o el paquete ppsspp de tu distribución) y vuelve a abrir el instalador, o elige su ejecutable aquí.',
+      kUS: 'AMERICANA', kJP: 'JAPONESA', needOne: 'Elige al menos una copia: la americana o la japonesa.',
+      destTitle: 'CARPETA DE INSTALACIÓN', destSub: 'Dónde se instalará el juego. La carpeta es portátil: puedes moverla después.', destLbl: 'CARPETA',
+      space: 'Necesita unos {0} GB libres.', optCopy: 'Copiar mis ISOs a la carpeta del juego (recomendado)', optEs: 'Preparar ya la versión en español (1–2 min)',
+      optDesk: 'Crear acceso directo en el escritorio', optMenu: 'Añadir al menú de inicio / aplicaciones',
+      runTitle: 'INSTALANDO', runNote: 'No cierres el instalador. Tarda entre 2 y 8 minutos.',
+      st: { check: 'Verificando tus copias…', launcher: 'Instalando Dionixu\'s Launcher…', engine: 'Instalando PPSSPP y las herramientas…', copy: 'Copiando tus ISOs…',
+        spanish: 'Creando la versión en español (UNDUB)…', config: 'Configurando el launcher…', shortcuts: 'Creando accesos directos…', done: '¡Instalación completa!' },
+      doneTitle: '¡LISTO!', doneSub: 'The 3rd Birthday está instalado. El launcher se abrirá en una ventana.', countdown: 'Abriendo en {0}…', launch: 'ABRIR AHORA', openFolder: 'ABRIR CARPETA',
+      failTitle: 'NO SE PUDO INSTALAR', failSub: 'No se ha modificado nada fuera de la carpeta de instalación. Detalles en instalacion.log.',
+      e: { verify: 'La ISO «{0}» no coincide con ningún disco original admitido (USA ULUS-10567 o Japón ULJM-05798).', space: 'No hay espacio suficiente: se necesitan unos {0} GB libres.',
+        patch: 'No se pudo crear la versión en español. El launcher lo intentará de nuevo al jugar.', payload: 'Faltan archivos del instalador (carpeta payload).', noiso: 'Elige al menos una ISO.' },
+      pfWin: 'Windows · PPSSPP incluido', pfLin: 'Linux (AppImage) · usa tu PPSSPP'
+    },
+    en: {
+      sub: 'INSTALLER · THE 3RD BIRTHDAY', steps: ['LANGUAGE', 'NOTICE', 'YOUR COPY', 'FOLDER', 'INSTALL'],
+      langTitle: 'LANGUAGE', langSub: 'Choose the language of the installer and the launcher. You can change it later in Settings.',
+      next: 'NEXT', back: 'BACK', browse: 'BROWSE', install: 'INSTALL', close: 'CLOSE',
+      legalTitle: 'IMPORTANT NOTICE', accept: 'I have read the notice. I own an original copy of The 3rd Birthday.',
+      legal: `<h3>THIS INSTALLER DOES NOT INCLUDE THE GAME</h3>
+<p>To install <b>The 3rd Birthday</b> you need <b>your own original, legal copy</b> of the PSP game. Pick whichever you prefer (or both):</p>
+<ul><li><b>US version</b> · ULUS-10567 — play in <b>English</b> and, with the built-in patch, in <b>Spanish with Japanese voices (UNDUB)</b>.</li>
+<li><b>Japanese version</b> · ULJM-05798 — play in <b>Japanese</b>, as released in Japan.</li></ul>
+<p>The ISO must come from <b>your UMD</b> (dumped with your own PSP). It is checked against the original disc (Redump MD5). The European version does not work with this installer.</p>
+<p><b>The Spanish translation is built in:</b> the installer creates the Spanish version from your US ISO. Translation by <b>Traducciones del Tío Victor</b> (SkyBladeCloud, el_capo, Ventus, auron, Akareh, Axxel, Vash, Phoenix, Joghi, eliden, IlDucci).</p>
+<div class="warn"><b>It only works with your official copy.</b> If the image does not match the original, unmodified disc, installation stops. CSO files and already patched ISOs are not accepted.</div>
+<div class="warn"><b>No piracy.</b> Dionixu's Launcher does not encourage, accept or support piracy. Do not download or share game images.</div>
+<p>The 3rd Birthday © 2010–2011 Square Enix Co., Ltd. Character design: Tetsuya Nomura. This is a non-profit fan project, not affiliated with or endorsed by Square Enix. Uses PPSSPP (GPL 2.0+) and xdelta3.</p>`,
+      filesTitle: 'YOUR ORIGINAL COPY', filesSub: 'Choose the US ISO, the Japanese ISO or both. They are verified right away (a few seconds each).',
+      fUS: 'US VERSION', fUSs: 'USA · ULUS-10567 · English + Spanish', fJP: 'JAPANESE VERSION', fJPs: 'ULJM-05798 · Japanese', fPP: 'YOUR PPSSPP', fPPs: 'Linux: Flatpak or package',
+      none: 'Not selected (optional)', checking: 'CHECKING… {0}%', okId: '✓ ORIGINAL {0} VERIFIED', badId: '✗ DOES NOT MATCH THE ORIGINAL DISC', wrongKind: '✗ THIS IS THE {0} ONE, NOT THE {1}',
+      ppHint: 'Detected: {0}', ppNone: 'Install PPSSPP: flatpak install flathub org.ppsspp.PPSSPP (or your distro ppsspp package) and reopen the installer, or choose its executable here.',
+      kUS: 'US', kJP: 'JAPANESE', needOne: 'Choose at least one copy: US or Japanese.',
+      destTitle: 'INSTALL FOLDER', destSub: 'Where the game will be installed. The folder is portable: you can move it later.', destLbl: 'FOLDER',
+      space: 'Needs about {0} GB free.', optCopy: 'Copy my ISOs into the game folder (recommended)', optEs: 'Build the Spanish version now (1–2 min)',
+      optDesk: 'Create a desktop shortcut', optMenu: 'Add to the start / applications menu',
+      runTitle: 'INSTALLING', runNote: 'Do not close the installer. This takes 2 to 8 minutes.',
+      st: { check: 'Verifying your copies…', launcher: "Installing Dionixu's Launcher…", engine: 'Installing PPSSPP and tools…', copy: 'Copying your ISOs…',
+        spanish: 'Building the Spanish version (UNDUB)…', config: 'Setting up the launcher…', shortcuts: 'Creating shortcuts…', done: 'Installation complete!' },
+      doneTitle: 'ALL SET!', doneSub: 'The 3rd Birthday is installed. The launcher will open in a window.', countdown: 'Opening in {0}…', launch: 'OPEN NOW', openFolder: 'OPEN FOLDER',
+      failTitle: 'INSTALLATION FAILED', failSub: 'Nothing outside the install folder was changed. Details in instalacion.log.',
+      e: { verify: 'The ISO “{0}” does not match any supported original disc (USA ULUS-10567 or Japan ULJM-05798).', space: 'Not enough space: about {0} GB free is needed.',
+        patch: 'The Spanish version could not be built. The launcher will try again when you play.', payload: 'Installer files are missing (payload folder).', noiso: 'Choose at least one ISO.' },
+      pfWin: 'Windows · PPSSPP included', pfLin: 'Linux (AppImage) · uses your PPSSPP'
+    }
+  };
+  let lang = (navigator.language || 'es').slice(0, 2); if (!S[lang]) lang = 'es';
+  const t = (k, ...a) => { const v = k.split('.').reduce((o, x) => o && o[x], S[lang]); return String(v == null ? k : v).replace(/\{(\d)\}/g, (_, i) => a[i]); };
+
+  const V = ['lang', 'legal', 'files', 'dest', 'run', 'done', 'fail'];
+  let view = 'lang', st = { platform: 'win32', defaultDir: '', ppssppFound: [] };
+  const sel = { us: '', jp: '', usState: null, jpState: null, usPct: 0, jpPct: 0, ppsspp: '', dir: '' };
+  const isLinux = () => st.platform === 'linux';
+  const show = (v) => { view = v; document.querySelectorAll('.view').forEach((el) => el.classList.toggle('on', el.dataset.v === v)); paintSteps(); if (v === 'dest') paintDest(); };
+  const paintSteps = () => {
+    const i = Math.min(4, V.indexOf(view));
+    $('steps').innerHTML = S[lang].steps.map((s, k) => '<span class="dot' + (k === i ? ' on' : k < i ? ' done' : '') + '">' + s + '</span>').join('');
+  };
+  const applyLang = () => {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-t]').forEach((el) => { el.textContent = t(el.dataset.t); });
+    $('legalTxt').innerHTML = S[lang].legal;
+    $('tSub').textContent = t('sub');
+    $('pfNote').textContent = isLinux() ? t('pfLin') : t('pfWin');
+    document.querySelectorAll('.lang').forEach((b) => b.classList.toggle('on', b.dataset.l === lang));
+    paintFields(); paintSteps(); paintDest();
+  };
+  const okKind = (k) => sel[k + 'State'] === 'ok';
+  const paintFields = () => {
+    const rows = [['us', t('fUS'), t('fUSs')], ['jp', t('fJP'), t('fJPs')]];
+    if (isLinux()) rows.push(['ppsspp', t('fPP'), t('fPPs')]);
+    $('fields').innerHTML = rows.map(([k, l, s]) => {
+      const p = sel[k];
+      let state = '', cls = 'wait';
+      if (k === 'us' || k === 'jp') {
+        const v = sel[k + 'State'];
+        if (p && v === 'checking') state = t('checking', sel[k + 'Pct']);
+        else if (v === 'ok') { cls = 'ok'; state = t('okId', k === 'us' ? 'ULUS-10567' : 'ULJM-05798'); }
+        else if (v === 'bad') { cls = 'bad'; state = t('badId'); }
+        else if (v && v.startsWith('wrong:')) { cls = 'bad'; state = t('wrongKind', t(v.slice(6) === 'us' ? 'kUS' : 'kJP'), t(k === 'us' ? 'kUS' : 'kJP')); }
+      } else { state = sel.ppsspp ? t('ppHint', sel.ppsspp.startsWith('flatpak:') ? 'Flatpak' : 'PPSSPP') : t('ppNone'); cls = sel.ppsspp ? 'ok' : 'bad'; }
+      const shown = p && p.startsWith('flatpak:') ? 'Flatpak · ' + p.slice(8) : p;
+      return '<div class="field"><span class="lbl">' + l + '<small>' + s + '</small></span><div class="path' + (p ? '' : ' empty') + '">' + (shown || t('none')) +
+        '</div><button class="btn" data-pick="' + k + '">' + t('browse') + '</button>' + (state ? '<div class="state ' + cls + '">' + state + '</div>' : '') + '</div>';
+    }).join('') + ((sel.us || sel.jp) ? '' : '<p class="small">' + t('needOne') + '</p>');
+    document.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => { play('ok'); send('pick', { kind: b.dataset.pick }); }));
+    const anyBad = ['us', 'jp'].some((k) => sel[k] && !okKind(k));
+    const ok = (okKind('us') || okKind('jp')) && !anyBad && (!isLinux() || sel.ppsspp);
+    $('filesNext').disabled = !ok;
+  };
+  const paintDest = () => {
+    $('destPath').textContent = sel.dir;
+    const n = [okKind('us'), okKind('jp')].filter(Boolean).length;
+    const gb = 0.6 + ($('optCopy').checked ? n * 1.5 : 0) + (okKind('us') && $('optEs').checked ? 1.4 : 0);
+    $('spaceTxt').textContent = t('space', gb.toFixed(1));
+    $('rowEs').style.display = okKind('us') ? '' : 'none';
+  };
+
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => { lang = b.dataset.l; play('move'); applyLang(); }));
+  document.querySelectorAll('[data-next]').forEach((b) => b.addEventListener('click', () => { play('ok'); show(V[V.indexOf(view) + 1]); }));
+  document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', () => { play('back'); show(V[V.indexOf(view) - 1]); }));
+  $('accept').addEventListener('change', (e) => { $('legalNext').disabled = !e.target.checked; play('move'); });
+  ['optCopy', 'optEs'].forEach((id) => $(id).addEventListener('change', () => { play('move'); paintDest(); }));
+  $('destPick').addEventListener('click', () => { play('ok'); send('pick', { kind: 'dir', current: sel.dir }); });
+  $('goInstall').addEventListener('click', () => {
+    play('start'); show('run'); $('logBox').textContent = '';
+    send('install', { opts: { lang, us: okKind('us') ? sel.us : '', jp: okKind('jp') ? sel.jp : '', dir: sel.dir, ppsspp: sel.ppsspp,
+      copy: $('optCopy').checked, spanish: $('optEs').checked, desktop: $('optDesk').checked, menu: $('optMenu').checked } });
+  });
+  $('launchNow').addEventListener('click', () => { play('start'); send('launch'); });
+  $('openFolder').addEventListener('click', () => send('openFolder'));
+  $('failBack').addEventListener('click', () => { play('back'); show('files'); });
+  $('failClose').addEventListener('click', () => send('close'));
+  $('bMin').addEventListener('click', () => send('minimize'));
+  $('bClose').addEventListener('click', () => send('close'));
+
+  const errText = (msg) => {
+    const s = String(msg || ''), i = s.indexOf(':'), k = i < 0 ? s : s.slice(0, i), a = i < 0 ? '' : s.slice(i + 1);
+    if (k === 'verify') return t('e.verify', a); if (k === 'space') return t('e.space', a); if (k === 'patch') return t('e.patch');
+    if (k === 'payload') return t('e.payload'); if (k === 'noiso') return t('e.noiso');
+    return s;
+  };
+  if (host) host.addEventListener('message', (ev) => {
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    const d = m.data;
+    if (m.type === 'state') {
+      st = d; sel.dir = d.defaultDir;
+      if (isLinux() && d.ppssppFound && d.ppssppFound[0]) sel.ppsspp = d.ppssppFound[0].path;
+      applyLang();
+    } else if (m.type === 'picked') {
+      if (d.kind === 'dir') { sel.dir = d.path.replace(/[\\/]$/, '') + (/(The 3rd Birthday)$/i.test(d.path) ? '' : (isLinux() ? '/' : '\\') + DIRNAME); paintDest(); }
+      else if (d.kind === 'ppsspp') { sel.ppsspp = d.path; paintFields(); }
+      else { sel[d.kind] = d.path; sel[d.kind + 'State'] = 'checking'; sel[d.kind + 'Pct'] = 0; paintFields(); send('check', { kind: d.kind, path: d.path }); }
+    } else if (m.type === 'checking') { if (sel[d.kind + 'State'] === 'checking') { sel[d.kind + 'Pct'] = d.pct; paintFields(); } }
+    else if (m.type === 'checked') {
+      if (sel[d.kind] !== d.path) return;
+      sel[d.kind + 'State'] = !d.found ? 'bad' : d.found === d.kind ? 'ok' : 'wrong:' + d.found;
+      play(d.found === d.kind ? 'ok' : 'back'); paintFields();
+    }
+    else if (m.type === 'prog') { $('stepTxt').textContent = t('st.' + d.key); $('barFill').style.width = d.pct + '%'; $('pct').textContent = Math.round(d.pct) + '%'; }
+    else if (m.type === 'log') { const b = $('logBox'); b.textContent += d + '\n'; b.scrollTop = b.scrollHeight; }
+    else if (m.type === 'done') {
+      play('start'); show('done');
+      let n = 5; $('countdown').textContent = t('countdown', n);
+      const iv = setInterval(() => { n--; $('countdown').textContent = t('countdown', n); if (n <= 0) { clearInterval(iv); send('launch'); } }, 1000);
+    } else if (m.type === 'fail') { play('back'); $('failTxt').textContent = errText(d.error); show('fail'); }
+  });
+  applyLang();
+  if (host) send('init');
+})();
+</script>
+</body>
+</html>

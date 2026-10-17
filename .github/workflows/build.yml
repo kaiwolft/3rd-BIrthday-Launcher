@@ -1,0 +1,159 @@
+# Compila los instaladores de Windows (.zip) y Linux (AppImage) y los publica en Releases.
+# Se ejecuta al cambiar el archivo VERSION en main, al crear una etiqueta v*, o a mano (Actions → Run workflow).
+# Nunca incluye el juego: los instaladores piden la ISO original del usuario (USA ULUS-10567 y/o Japón ULJM-05798).
+name: Instaladores
+
+on:
+  push:
+    branches: [main]
+    paths: [VERSION]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  ELECTRON: '44.5.1'
+  PPSSPP: '1.20.4'
+  RCEDIT: 'v2.0.0'
+  PATCH_MD5: '6537bb47f88eece50d126cf40fd24ea5'
+
+jobs:
+  windows:
+    name: Instalador de Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Armar instalador
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue'
+          $v = (Get-Content VERSION -Raw).Trim()
+          $W = "dist\The 3rd Birthday - Instalador Windows"
+          $tmp = "dist\_tmp"; New-Item -ItemType Directory -Force $W, $tmp | Out-Null
+          # Electron: motor del instalador y del launcher
+          Invoke-WebRequest "https://github.com/electron/electron/releases/download/v$env:ELECTRON/electron-v$env:ELECTRON-win32-x64.zip" -OutFile "$tmp\electron.zip"
+          Expand-Archive "$tmp\electron.zip" -DestinationPath $W -Force
+          Remove-Item "$W\resources\default_app.asar" -Force -ErrorAction SilentlyContinue
+          Rename-Item "$W\electron.exe" 'Instalar The 3rd Birthday.exe'
+          Invoke-WebRequest "https://github.com/electron/rcedit/releases/download/$env:RCEDIT/rcedit-x64.exe" -OutFile "$tmp\rcedit.exe"
+          & "$tmp\rcedit.exe" "$W\Instalar The 3rd Birthday.exe" --set-icon launcher\ui\assets\icon.ico `
+            --set-version-string ProductName 'The 3rd Birthday' --set-version-string FileDescription "The 3rd Birthday - Dionixu's Launcher" `
+            --set-version-string CompanyName 'Dionixu' --set-version-string OriginalFilename 'The3rdBirthday.exe' --set-version-string InternalName 'The3rdBirthday' `
+            --set-file-version $v --set-product-version $v
+          if ($LASTEXITCODE) { throw 'rcedit' }
+          Copy-Item instalador\app "$W\resources\app" -Recurse
+          # payload: launcher, PPSSPP portable, xdelta3, parche al español, Steam
+          $P = "$W\payload"
+          New-Item -ItemType Directory -Force "$P\launcher\app", "$P\herramientas", "$P\parche", "$P\steam" | Out-Null
+          Copy-Item launcher\resources\app\* "$P\launcher\app\"
+          Copy-Item launcher\ui "$P\launcher\ui" -Recurse
+          $pv = $env:PPSSPP.Replace('.', '_')
+          Invoke-WebRequest "https://www.ppsspp.org/files/$pv/ppsspp_win.zip" -OutFile "$tmp\ppsspp.zip" -Headers @{ 'User-Agent' = 'Mozilla/5.0' }
+          Expand-Archive "$tmp\ppsspp.zip" -DestinationPath "$tmp\ppsspp" -Force
+          $pe = Get-ChildItem "$tmp\ppsspp" -Recurse -Filter PPSSPPWindows64.exe | Select-Object -First 1
+          if (-not $pe) { throw 'PPSSPP' }
+          Copy-Item $pe.Directory.FullName "$P\PPSSPP" -Recurse
+          New-Item -ItemType Directory -Force "$P\PPSSPP\memstick\PSP\SYSTEM" | Out-Null
+          Invoke-WebRequest 'https://github.com/jmacd/xdelta-gpl/releases/download/v3.1.0/xdelta3-3.1.0-x86_64.exe.zip' -OutFile "$tmp\xd.zip"
+          Expand-Archive "$tmp\xd.zip" -DestinationPath "$tmp\xd" -Force
+          $xd = Get-ChildItem "$tmp\xd" -Recurse -Filter *.exe | Select-Object -First 1
+          Copy-Item $xd.FullName "$P\herramientas\xdelta3.exe"
+          # parche: se une a partir de las partes (GitHub no admite archivos de más de 100 MB en el repositorio)
+          $out = [IO.File]::Create("$P\parche\T3B_ES_desde_ULUS10567.xdelta")
+          foreach ($f in (Get-ChildItem parche\partes -Filter 'T3B_ES_desde_ULUS10567.xdelta.*' | Sort-Object Name)) {
+            $b = [IO.File]::ReadAllBytes($f.FullName); $out.Write($b, 0, $b.Length) }
+          $out.Close()
+          $md5 = (Get-FileHash "$P\parche\T3B_ES_desde_ULUS10567.xdelta" -Algorithm MD5).Hash.ToLower()
+          if ($md5 -ne $env:PATCH_MD5) { throw "parche: MD5 $md5" }
+          Copy-Item parche\receta.json "$P\parche\"
+          Copy-Item steam\AGREGAR_A_STEAM.bat, steam\AGREGAR_A_STEAM.ps1, 'steam\LEEME - README.txt' "$P\steam\"
+          Copy-Item steam\arte "$P\steam\arte" -Recurse
+          Copy-Item instalador\docs\INSTRUCCIONES_Windows.txt "$W\INSTRUCCIONES - INSTRUCTIONS.txt"
+          Remove-Item $tmp -Recurse -Force
+          $zip = "dist\The_3rd_Birthday_Instalador_Windows_v$v.zip"
+          7z a -tzip -mx=5 $zip ".\$W" | Out-Null
+          Get-Item $zip | ForEach-Object { '{0}  {1:N1} MB' -f $_.Name, ($_.Length / 1MB) }
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: 'dist/*.zip' }
+
+  linux:
+    name: AppImage de Linux
+    runs-on: ubuntu-22.04          # glibc 2.35: funciona en Ubuntu 22.04 / Debian 12 / Mint 21 / Steam Deck o más nuevos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Armar AppImage
+        run: |
+          set -e
+          v=$(tr -d ' \r\n' < VERSION)
+          mkdir -p dist work/app work/tools work/parche
+          curl -sSL -o work/electron.zip "https://github.com/electron/electron/releases/download/v$ELECTRON/electron-v$ELECTRON-linux-x64.zip"
+          unzip -q work/electron.zip -d work/electron
+          cp launcher/resources/app/main.js launcher/resources/app/preload.js launcher/resources/app/package.json work/app/
+          # xdelta3 (para crear la versión en español)
+          sudo apt-get update -q && sudo apt-get install -y -q xdelta3 > /dev/null
+          cp "$(command -v xdelta3)" work/tools/xdelta3 && chmod +x work/tools/xdelta3
+          cat parche/partes/T3B_ES_desde_ULUS10567.xdelta.* > work/parche/T3B_ES_desde_ULUS10567.xdelta
+          echo "$PATCH_MD5  work/parche/T3B_ES_desde_ULUS10567.xdelta" | md5sum -c -
+          cp parche/receta.json work/parche/
+          OUT="dist/Instalar_The_3rd_Birthday-x86_64.AppImage"
+          cat > work/spec.json <<JSON
+          {
+            "runtime": "instalador/appimage/runtime-x86_64",
+            "out": "$OUT",
+            "trees": [
+              { "src": "work/electron", "dst": "", "exclude": ["resources/default_app.asar"], "exec": ["electron", "chrome-sandbox", "chrome_crashpad_handler"] },
+              { "src": "instalador/app", "dst": "resources/app" },
+              { "src": "work/app", "dst": "payload/launcher/app" },
+              { "src": "launcher/ui", "dst": "payload/launcher/ui" },
+              { "src": "work/tools", "dst": "payload/herramientas", "exec": ["xdelta3"] },
+              { "src": "work/parche", "dst": "payload/parche" },
+              { "src": "steam", "dst": "payload/steam", "exclude": ["AGREGAR_A_STEAM.bat", "AGREGAR_A_STEAM.ps1"], "exec": ["agregar_a_steam.sh", "agregar_a_steam.py"] }
+            ],
+            "files": [
+              { "src": "instalador/appimage/AppRun", "dst": "AppRun", "mode": 493 },
+              { "src": "instalador/appimage/the3rdbirthday.desktop", "dst": "the3rdbirthday.desktop" },
+              { "src": "launcher/ui/assets/icon.png", "dst": "the3rdbirthday.png" },
+              { "src": "launcher/ui/assets/icon.png", "dst": ".DirIcon" }
+            ]
+          }
+          JSON
+          node instalador/build/appimage.js work/spec.json
+          chmod +x "$OUT"
+          cp instalador/docs/INSTRUCCIONES_Linux.txt "dist/INSTRUCCIONES_Linux - INSTRUCTIONS.txt"
+          (cd dist && sha256sum Instalar_The_3rd_Birthday-x86_64.AppImage > SHA256_AppImage.txt)
+          ls -la dist
+      - name: Prueba rápida (el AppImage arranca)
+        run: |
+          sudo apt-get install -y -q xvfb libfuse2 > /dev/null
+          timeout 25 xvfb-run -a dist/Instalar_The_3rd_Birthday-x86_64.AppImage --appimage-extract-and-run > appimage_run.log 2>&1 || true
+          tail -20 appimage_run.log
+      - uses: actions/upload-artifact@v4
+        with: { name: linux, path: 'dist/*' }
+
+  publicar:
+    name: Publicar en Releases
+    needs: [windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: dist, merge-multiple: true }
+      - name: Versión y notas
+        id: ver
+        run: |
+          v=$(tr -d ' \r\n' < VERSION)
+          echo "v=$v" >> "$GITHUB_OUTPUT"
+          f="NOTAS_RELEASE_v$v.md"; [ -f "$f" ] || f=CHANGELOG.md
+          echo "notes=$f" >> "$GITHUB_OUTPUT"
+          ls -la dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.v }}
+          name: The 3rd Birthday — Dionixu's Launcher v${{ steps.ver.outputs.v }}
+          body_path: ${{ steps.ver.outputs.notes }}
+          files: dist/*
+          make_latest: true

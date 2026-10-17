@@ -1,0 +1,29 @@
+THE 3RD BIRTHDAY - DIONIXU'S LAUNCHER · INSTALADOR PARA LINUX (AppImage)
+=======================================================================
+
+ES
+1. Instala PPSSPP (recomendado: Flatpak)
+     flatpak install flathub org.ppsspp.PPSSPP
+   o el paquete de tu distribución (ppsspp / ppsspp-sdl). Para el español también necesitas xdelta3
+   (ya viene dentro del instalador; si fallara: sudo apt install xdelta3).
+2. Da permiso de ejecución y abre el instalador:
+     chmod +x Instalar_The_3rd_Birthday-x86_64.AppImage
+     ./Instalar_The_3rd_Birthday-x86_64.AppImage
+   (Si tu sistema no tiene FUSE: ./Instalar_The_3rd_Birthday-x86_64.AppImage --appimage-extract-and-run)
+3. Elige tu copia ORIGINAL (ISO de tu UMD): la americana (ULUS-10567), la japonesa (ULJM-05798) o las dos.
+4. Elige la carpeta (por defecto ~/Games/The 3rd Birthday) y pulsa INSTALAR.
+5. Para añadirlo a Steam: en la carpeta instalada ejecuta ./agregar_a_steam.sh (cierra Steam antes o deja que el script lo cierre).
+En Linux la cámara libre, la pausa con ESC / L3+R3 y el control de volumen en vivo todavía no están disponibles (son solo de Windows).
+
+EN
+1. Install PPSSPP (recommended: Flatpak)
+     flatpak install flathub org.ppsspp.PPSSPP
+   or your distro package (ppsspp / ppsspp-sdl). xdelta3 is bundled (if it fails: sudo apt install xdelta3).
+2. Make the installer executable and run it:
+     chmod +x Instalar_The_3rd_Birthday-x86_64.AppImage
+     ./Instalar_The_3rd_Birthday-x86_64.AppImage
+   (Without FUSE: ./Instalar_The_3rd_Birthday-x86_64.AppImage --appimage-extract-and-run)
+3. Choose your ORIGINAL copy (ISO from your UMD): US (ULUS-10567), Japanese (ULJM-05798) or both.
+4. Choose the folder (default ~/Games/The 3rd Birthday) and press INSTALL.
+5. To add it to Steam: run ./agregar_a_steam.sh in the installed folder (close Steam first or let the script close it).
+On Linux the free camera, the ESC / L3+R3 pause menu and live volume control are not available yet (Windows only).

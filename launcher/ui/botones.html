@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Botones</title>
+<style>
+@font-face{font-family:"T3BCond";src:url(assets/botones/BarlowCondensed-Bold.ttf) format("truetype");font-weight:700}
+html,body{margin:0;background:#000}
+</style>
+</head>
+<body>
+<script>
+// Dibuja los iconos de botones (Xbox o teclado/ratón) encima de las texturas base HD del juego.
+// La llama el proceso principal en una ventana oculta: buildGlyphs(opciones) -> { nombre: dataURL PNG }.
+// Todas las coordenadas de las celdas están en píxeles de la textura original de PSP; K = escala de las bases.
+'use strict';
+const K = 4;
+const FONT_CELLS = { // atlas de la fuente 512x256: celdas de 17 px (glifo de 14 px)
+  square: [170, 221, 17], triangle: [187, 221, 17], circle: [204, 221, 17], cross: [221, 221, 17],
+  ls: [238, 221, 17], rs: [255, 221, 17], du: [272, 221, 17], dd: [289, 221, 17], dl: [306, 221, 17], dr: [323, 221, 17],
+  l: [340, 221, 34], r: [374, 221, 34], select: [408, 221, 51], start: [459, 221, 51] };
+const HUD_CELLS = { // atlas del HUD 256x512
+  circle: [129, 11, 16, 16], cross: [129, 31, 16, 16], triangle: [129, 51, 16, 16], square: [129, 71, 16, 16],
+  l: [33, 131, 16, 12], r: [53, 131, 16, 12] };
+
+const XBOX = { 'Button A': '#5fb336', 'Button B': '#e5483f', 'Button X': '#3d8ee2', 'Button Y': '#f0b43a' };
+const RED = '#d3192c';
+const KEYCAP = '#ececec', KEYEDGE = '#8e9196', INK = '#17181b';
+
+const loadImg = (src) => new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error('No carga ' + src)); i.src = src; });
+
+function rr(c, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+function fitText(c, txt, maxW, size, weight) {
+  let s = size;
+  do { c.font = (weight || 700) + ' ' + s + 'px T3BCond'; if (c.measureText(txt).width <= maxW) break; s -= 1; } while (s > 6);
+  return s;
+}
+function text(c, txt, cx, cy, maxW, size, color) {
+  fitText(c, txt, maxW, size); c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(txt, cx, cy + size * 0.04);
+}
+function arrow(c, dir, cx, cy, s, color) {   // flecha maciza
+  c.save(); c.translate(cx, cy); c.rotate({ u: 0, r: Math.PI / 2, d: Math.PI, l: -Math.PI / 2 }[dir]);
+  c.fillStyle = color; c.beginPath();
+  c.moveTo(0, -s * 0.5); c.lineTo(s * 0.42, -s * 0.02); c.lineTo(s * 0.15, -s * 0.02); c.lineTo(s * 0.15, s * 0.5);
+  c.lineTo(-s * 0.15, s * 0.5); c.lineTo(-s * 0.15, -s * 0.02); c.lineTo(-s * 0.42, -s * 0.02); c.closePath(); c.fill(); c.restore();
+}
+
+// ---------- piezas Xbox
+function xFace(c, x, y, s, letter, color) {
+  const cx = x + s / 2, cy = y + s / 2, r = s / 2;
+  const g = c.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r);
+  g.addColorStop(0, shade(color, 0.28)); g.addColorStop(0.7, color); g.addColorStop(1, shade(color, -0.35));
+  c.fillStyle = g; c.beginPath(); c.arc(cx, cy, r * 0.97, 0, Math.PI * 2); c.fill();
+  c.lineWidth = s * 0.05; c.strokeStyle = shade(color, -0.5); c.stroke();
+  text(c, letter, cx, cy, s * 0.7, Math.round(s * 0.74), '#ffffff');
+}
+function xPill(c, x, y, w, h, label, icon) {   // gatillos, bumpers, View y Menu (estilo de las píldoras originales)
+  c.fillStyle = '#e9e9ea'; rr(c, x, y, w, h, h * 0.45); c.fill();
+  c.lineWidth = h * 0.06; c.strokeStyle = '#7d8086'; c.stroke();
+  if (icon === 'view') {
+    const s = h * 0.36, ox = x + w / 2 - s * 0.62, oy = y + h / 2 - s * 0.62;
+    c.lineWidth = h * 0.075; c.strokeStyle = INK; c.lineJoin = 'round';
+    c.strokeRect(ox, oy, s, s); c.fillStyle = INK; c.fillRect(ox + s * 0.45, oy + s * 0.45, s, s);
+  } else if (icon === 'menu') {
+    const s = h * 0.46, ox = x + w / 2 - s / 2, oy = y + h / 2 - s * 0.38;
+    c.fillStyle = INK; for (let i = 0; i < 3; i++) rr(c, ox, oy + i * s * 0.38, s, h * 0.085, h * 0.04), c.fill();
+  } else text(c, label, x + w / 2, y + h / 2, w * 0.8, Math.round(h * 0.78), INK);
+}
+function xTrigger(c, x, y, w, h, label) {   // gatillo: píldora con el borde superior redondeado
+  c.fillStyle = '#e9e9ea'; c.beginPath();
+  const r = h * 0.48; c.moveTo(x, y + h); c.lineTo(x, y + r); c.arcTo(x, y, x + r, y, r); c.lineTo(x + w - r, y); c.arcTo(x + w, y, x + w, y + r, r);
+  c.lineTo(x + w, y + h - h * 0.18); c.arcTo(x + w, y + h, x + w - h * 0.18, y + h, h * 0.18); c.lineTo(x + h * 0.18, y + h); c.arcTo(x, y + h, x, y + h - h * 0.18, h * 0.18); c.closePath(); c.fill();
+  c.lineWidth = h * 0.06; c.strokeStyle = '#7d8086'; c.stroke();
+  text(c, label, x + w / 2, y + h * 0.54, w * 0.8, Math.round(h * 0.76), INK);
+}
+function xDpad(c, x, y, s, dir) {
+  const a = s * 0.34, cx = x + s / 2, cy = y + s / 2;
+  c.fillStyle = '#4a4d53'; c.beginPath();
+  c.moveTo(cx - a / 2, y + s * 0.03); c.lineTo(cx + a / 2, y + s * 0.03); c.lineTo(cx + a / 2, cy - a / 2); c.lineTo(x + s * 0.97, cy - a / 2);
+  c.lineTo(x + s * 0.97, cy + a / 2); c.lineTo(cx + a / 2, cy + a / 2); c.lineTo(cx + a / 2, y + s * 0.97); c.lineTo(cx - a / 2, y + s * 0.97);
+  c.lineTo(cx - a / 2, cy + a / 2); c.lineTo(x + s * 0.03, cy + a / 2); c.lineTo(x + s * 0.03, cy - a / 2); c.lineTo(cx - a / 2, cy - a / 2); c.closePath(); c.fill();
+  c.lineWidth = s * 0.04; c.strokeStyle = '#d7d8db'; c.stroke();
+  if (dir) {
+    const arm = { u: [cx - a / 2, y + s * 0.03, a, s / 2 - a / 2], d: [cx - a / 2, cy + a / 2, a, s / 2 - a / 2 - s * 0.03],
+      l: [x + s * 0.03, cy - a / 2, s / 2 - a / 2, a], r: [cx + a / 2, cy - a / 2, s / 2 - a / 2 - s * 0.03, a] }[dir];
+    c.fillStyle = '#ffffff'; c.fillRect(arm[0], arm[1], arm[2], arm[3]);
+  }
+}
+function xStick(c, x, y, s, label) {
+  const cx = x + s / 2, cy = y + s / 2, r = s / 2;
+  c.fillStyle = '#2d2f33'; c.beginPath(); c.arc(cx, cy, r * 0.97, 0, Math.PI * 2); c.fill();
+  c.lineWidth = s * 0.05; c.strokeStyle = '#d7d8db'; c.stroke();
+  c.fillStyle = '#55595f'; c.beginPath(); c.arc(cx, cy, r * 0.66, 0, Math.PI * 2); c.fill();
+  text(c, label, cx, cy, s * 0.62, Math.round(s * 0.52), '#ffffff');
+}
+
+// ---------- piezas teclado / ratón
+function keycap(c, x, y, w, h, draw) {
+  const d = h * 0.11;
+  c.fillStyle = KEYEDGE; rr(c, x, y + d * 0.6, w, h - d * 0.6, h * 0.2); c.fill();
+  c.fillStyle = KEYCAP; rr(c, x, y, w, h - d, h * 0.2); c.fill();
+  c.lineWidth = h * 0.045; c.strokeStyle = '#5c5f65'; rr(c, x, y, w, h, h * 0.2); c.stroke();
+  draw(x + w / 2, y + (h - d) / 2, w, h - d);
+}
+function keyLabel(lang, name, wide) {
+  const es = lang === 'es';
+  const T = {
+    SPACE: wide ? (es ? 'ESPACIO' : 'SPACE') : '␣', LSHIFT: wide ? (es ? 'MAYÚS' : 'SHIFT') : '⇧', RSHIFT: wide ? (es ? 'MAYÚS' : 'SHIFT') : '⇧',
+    LCONTROL: 'CTRL', RCONTROL: 'CTRL', LMENU: 'ALT', RMENU: 'ALT GR', RETURN: wide ? (es ? 'INTRO' : 'ENTER') : '↵', NUMPADENTER: wide ? (es ? 'INTRO' : 'ENTER') : '↵',
+    ESCAPE: 'ESC', TAB: 'TAB', BACK: wide ? (es ? 'RETROC.' : 'BKSP') : '⌫', CAPITAL: wide ? (es ? 'BLOQ MAYÚS' : 'CAPS') : 'BLQ',
+    MINUS: '-', EQUALS: '=', LBRACKET: '[', RBRACKET: ']', SEMICOLON: 'Ñ', APOSTROPHE: '´', GRAVE: 'º', BACKSLASH: 'Ç', OEM_102: '<',
+    COMMA: ',', PERIOD: '.', SLASH: '-', INSERT: 'INS', DELETE: es ? 'SUPR' : 'DEL', HOME: es ? 'INICIO' : 'HOME', END: es ? 'FIN' : 'END',
+    PRIOR: es ? 'RE PÁG' : 'PG UP', NEXT: es ? 'AV PÁG' : 'PG DN', ADD: '+', SUBTRACT: '-', MULTIPLY: '*', DIVIDE: '/', DECIMAL: '.' };
+  if (T[name]) return T[name];
+  let m;
+  if ((m = /^NUMPAD(\d)$/.exec(name))) return (wide ? 'NUM ' : '') + m[1];
+  return name;
+}
+const ARROWKEY = { UP: 'u', DOWN: 'd', LEFT: 'l', RIGHT: 'r' };
+function drawKey(c, x, y, w, h, name, lang) {
+  const wide = w > h * 1.4;
+  keycap(c, x, y, w, h, (cx, cy, kw, kh) => {
+    if (ARROWKEY[name]) return arrow(c, ARROWKEY[name], cx, cy, kh * 0.62, INK);
+    const lab = keyLabel(lang, name, wide);
+    if (lab === '␣') {  // símbolo de barra espaciadora dibujado
+      c.strokeStyle = INK; c.lineWidth = kh * 0.11; c.lineCap = 'round'; c.beginPath();
+      c.moveTo(cx - kw * 0.3, cy - kh * 0.08); c.lineTo(cx - kw * 0.3, cy + kh * 0.16); c.lineTo(cx + kw * 0.3, cy + kh * 0.16); c.lineTo(cx + kw * 0.3, cy - kh * 0.08); c.stroke(); return;
+    }
+    const big = lab.length <= 1 || /^[⇧↵⌫]$/.test(lab);
+    text(c, lab, cx, cy, kw * 0.82, Math.round(kh * (big ? 0.8 : 0.62)), INK);
+  });
+}
+function drawMouse(c, x, y, w, h, btn, move) {
+  const mh = h * 0.96, mw = Math.min(w, mh * 0.66), mx = x + (w - mw) / 2, my = y + (h - mh) / 2;
+  const top = my + mh * 0.42, cx = mx + mw / 2;
+  c.save(); rr(c, mx, my, mw, mh, mw * 0.48); c.fillStyle = KEYCAP; c.fill();
+  c.clip();
+  if (btn === 0 || btn === 1) { c.fillStyle = RED; c.fillRect(btn === 0 ? mx : cx, my, mw / 2, top - my); }
+  c.restore();
+  c.lineWidth = Math.max(2, h * 0.06); c.strokeStyle = '#3a3c41';
+  rr(c, mx, my, mw, mh, mw * 0.48); c.stroke();
+  c.beginPath(); c.moveTo(mx, top); c.lineTo(mx + mw, top); c.moveTo(cx, my); c.lineTo(cx, top); c.stroke();
+  c.fillStyle = btn === 2 ? RED : '#3a3c41'; rr(c, cx - mw * 0.09, my + mh * 0.1, mw * 0.18, mh * 0.2, mw * 0.09); c.fill();
+  if (move) {  // flechas de movimiento (cámara con el ratón)
+    const s = h * 0.2;
+    for (const [d, ax, ay] of [['l', mx - s * 0.65, my + mh * 0.62], ['r', mx + mw + s * 0.65, my + mh * 0.62]]) if (w > mw + s * 2) arrow(c, d, ax, ay, s, '#ffffff');
+  }
+}
+function drawKeys4(c, x, y, s, keys) {   // [arriba, izquierda, abajo, derecha]
+  const labs = keys.map((k) => keyLabel('es', k || '?', false));
+  if (labs.every((l) => l.length === 1 && /[A-Z0-9Ñ]/.test(l))) {   // WASD / IJKL: una tecla con las cuatro letras
+    const t = [labs[0], labs[1], labs[2], labs[3]].join('');
+    return keycap(c, x, y, s, s, (cx, cy, kw, kh) => text(c, t, cx, cy, kw * 0.9, Math.round(kh * 0.5), INK));
+  }
+  // si no, cruz de teclas: arriba centrada, izquierda/abajo/derecha debajo
+  const kk = s * 0.36, row = y + s - kk - s * 0.01, top = y + s * 0.08;
+  const draw = (px, py, name) => keycap(c, px, py, kk, kk, (ccx, ccy, kw, kh) => {
+    if (ARROWKEY[name]) arrow(c, ARROWKEY[name], ccx, ccy, kh * 0.7, INK); else text(c, keyLabel('es', name, false).slice(0, 2), ccx, ccy, kw * 0.9, Math.round(kh * 0.86), INK);
+  });
+  draw(x + s / 2 - kk / 2, top, keys[0]);
+  draw(x + s / 2 - kk * 1.52, row, keys[1]); draw(x + s / 2 - kk / 2, row, keys[2]); draw(x + s / 2 + kk * 0.52, row, keys[3]);
+}
+
+function shade(hex, t) {
+  const n = parseInt(hex.slice(1), 16), ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const out = ch.map((v) => Math.round(t >= 0 ? v + (255 - v) * t : v * (1 + t)));
+  return '#' + out.map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+
+// ---------- qué se dibuja en cada celda
+// set 'xbox': pad = { accion: 'Button A' | 'Trigger L' | ... }   set 'kb': keys = { accion: 'SPACE' | 'Click 0' | ... }
+function iconFor(o, act) {
+  if (o.set === 'xbox') {
+    if (act === 'ls') return { t: 'stick', label: 'L' };
+    if (act === 'rs') return { t: 'stick', label: 'R' };
+    const b = o.pad[act];
+    if (XBOX[b]) return { t: 'face', letter: b.slice(-1), color: XBOX[b] };
+    if (b === 'Trigger L' || b === 'Trigger R') return { t: 'trigger', label: b === 'Trigger L' ? 'LT' : 'RT' };
+    if (b === 'Shoulder L' || b === 'Shoulder R') return { t: 'pill', label: b === 'Shoulder L' ? 'LB' : 'RB' };
+    if (b === 'Back') return { t: 'pill', icon: 'view' };
+    if (b === 'Start') return { t: 'pill', icon: 'menu' };
+    if (b === 'Thumb L' || b === 'Thumb R') return { t: 'stick', label: b === 'Thumb L' ? 'L' : 'R' };
+    const d = { 'Pad N': 'u', 'Pad S': 'd', 'Pad W': 'l', 'Pad E': 'r' }[b];
+    return { t: 'dpad', dir: d || null };
+  }
+  if (act === 'ls') return { t: 'keys4', keys: [o.keys.ls_up, o.keys.ls_left, o.keys.ls_down, o.keys.ls_right] };
+  if (act === 'rs') return o.mouseCam ? { t: 'mouse', btn: null, move: true } : { t: 'keys4', keys: [o.keys.rs_up, o.keys.rs_left, o.keys.rs_down, o.keys.rs_right] };
+  const k = o.keys[act];
+  const m = /^Click (\d)$/.exec(k || '');
+  if (m) return { t: 'mouse', btn: +m[1] };
+  return { t: 'key', name: k || '?' };
+}
+function drawIcon(c, ic, x, y, w, h, lang) {
+  const sq = Math.min(w, h), sx = x + (w - sq) / 2, sy = y + (h - sq) / 2;
+  switch (ic.t) {
+    case 'face': return xFace(c, sx, sy, sq, ic.letter, ic.color);
+    case 'stick': return xStick(c, sx, sy, sq, ic.label);
+    case 'dpad': return xDpad(c, sx, sy, sq, ic.dir);
+    case 'trigger': { const tw = Math.min(w, h * 2.1); return xTrigger(c, x + (w - tw) / 2, y, tw, h, ic.label); }
+    case 'pill': { const tw = Math.min(w, h * (ic.icon ? 2.2 : 2.1)); return xPill(c, x + (w - tw) / 2, y, tw, h, ic.label, ic.icon); }
+    case 'mouse': return drawMouse(c, x, y, w, h, ic.btn, ic.move);
+    case 'keys4': return drawKeys4(c, sx, sy, sq, ic.keys);
+    case 'key': {
+      const lab = keyLabel(lang, ic.name, true);
+      const want = w > h * 1.4 ? Math.min(w, Math.max(h * 1.15, h * (0.42 * lab.length + 0.5))) : sq;
+      return drawKey(c, x + (w - want) / 2, y, want, h, ic.name, lang);
+    }
+  }
+}
+
+// contorno negro de 1 px (de la PSP) como el de la paleta "b" de la fuente
+function outlined(src, px) {
+  const o = document.createElement('canvas'); o.width = src.width; o.height = src.height;
+  const c = o.getContext('2d');
+  const sil = document.createElement('canvas'); sil.width = src.width; sil.height = src.height;
+  const s = sil.getContext('2d'); s.drawImage(src, 0, 0); s.globalCompositeOperation = 'source-in'; s.fillStyle = '#000'; s.fillRect(0, 0, sil.width, sil.height);
+  for (let a = 0; a < 16; a++) c.drawImage(sil, Math.round(Math.cos(a * Math.PI / 8) * px), Math.round(Math.sin(a * Math.PI / 8) * px));
+  c.drawImage(src, 0, 0);
+  return o;
+}
+function cellCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
+async function buildGlyphs(o) {
+  await document.fonts.load('700 40px T3BCond');
+  const lang = o.lang || 'es';
+  const B = 'assets/botones/' + (o.dir ? o.dir + '/' : '');   // bases HD de la versión (es / us)
+  const out = {};
+  for (const variant of ['a', 'b']) {
+    const base = await loadImg(B + 'fuente_' + variant + '.png');
+    const cv = cellCanvas(base.width, base.height), c = cv.getContext('2d');
+    c.drawImage(base, 0, 0);
+    for (const [act, [x, y, w]] of Object.entries(o.cells || FONT_CELLS)) {
+      // borra el glifo original (con su contorno) y dibuja el nuevo en la caja de 14 px
+      c.clearRect(x * K, y * K, (w - 2) * K, 17 * K);
+      const bw = (w - 3) * K, bh = 14 * K;
+      const tmp = cellCanvas(bw + 2 * K, bh + 2 * K), t = tmp.getContext('2d');
+      drawIcon(t, iconFor(o, act), K, K, bw, bh, lang);
+      const fin = variant === 'b' ? outlined(tmp, K) : tmp;
+      c.drawImage(fin, (x - 1) * K, y * K);
+    }
+    out['fuente_' + variant] = cv.toDataURL('image/png');
+  }
+  if (o.hud !== false) {
+    const base = await loadImg(B + 'hud.png');
+    const cv = cellCanvas(base.width, base.height), c = cv.getContext('2d');
+    c.drawImage(base, 0, 0);
+    for (const [act, [x, y, w, h]] of Object.entries(HUD_CELLS)) {
+      c.clearRect((x - 1) * K, (y - 1) * K, (w + 2) * K, (h + 2) * K);
+      const tmp = cellCanvas(w * K, h * K), t = tmp.getContext('2d');
+      drawIcon(t, iconFor(o, act), 0, 0, w * K, h * K, lang);
+      // el HUD usa gris 128 = blanco (color doblado por el juego) y alfa 238
+      const id = t.getImageData(0, 0, tmp.width, tmp.height), d = id.data;
+      for (let i = 0; i < d.length; i += 4) { d[i] = d[i] * 128 / 255; d[i + 1] = d[i + 1] * 128 / 255; d[i + 2] = d[i + 2] * 128 / 255; d[i + 3] = d[i + 3] * 238 / 255; }
+      t.putImageData(id, 0, 0);
+      c.drawImage(tmp, x * K, y * K);
+    }
+    out.hud = cv.toDataURL('image/png');
+  }
+  {
+    // aviso de guardado del inicio (imagen opaca): "(x) Aceptar" -> icono del botón de aceptar
+    const base = await loadImg(B + 'aviso.png');
+    const cv = cellCanvas(base.width, base.height), c = cv.getContext('2d');
+    c.drawImage(base, 0, 0);
+    const [x, y, w, h] = o.aviso || [208, 72, 12, 12];
+    c.fillStyle = '#000'; c.fillRect((x - 1) * K, (y - 1) * K, (w + 2) * K, (h + 2) * K);
+    drawIcon(c, iconFor(o, o.avisoAct || 'cross'), x * K, y * K, w * K, h * K, lang);   // en la japonesa acepta el círculo
+    out.aviso = cv.toDataURL('image/png');
+  }
+  return out;
+}
+window.buildGlyphs = buildGlyphs;
+</script>
+</body>
+</html>

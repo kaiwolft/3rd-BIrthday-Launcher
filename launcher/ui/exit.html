@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Pausa</title>
+<style>
+@font-face{font-family:"T3B Type";src:url(fonts/SpecialElite-Regular.ttf) format("truetype")}
+@font-face{font-family:"T3B Mono";src:url(fonts/ShareTechMono-Regular.ttf) format("truetype")}
+@font-face{font-family:"T3B Sans";src:url(fonts/Barlow-Medium.ttf) format("truetype");font-weight:500}
+:root{--red:#d3192c;--red-hi:#ff3346;--red-lo:#7d0d18;--ink:#ebe8e4;--mute:#8d9198;
+  --type:"T3B Type","Special Elite","Courier New",monospace;--mono:"T3B Mono","Share Tech Mono",Consolas,monospace;--sans:"T3B Sans","Barlow",Bahnschrift,"Segoe UI",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;color:var(--ink);font-family:var(--sans);user-select:none;
+  cursor:url(assets/cursor.png) 2 2,auto}
+.padmode,.padmode *{cursor:none!important}
+#veil{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(40,0,6,.72),rgba(0,0,0,.93) 75%);opacity:0;transition:opacity .3s}
+.scan{position:absolute;inset:0;pointer-events:none;opacity:.25;background:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px)}
+#box{position:absolute;left:50%;top:50%;width:620px;transform:translate(-50%,-46%);opacity:0;transition:.35s cubic-bezier(.2,.8,.2,1)}
+body.show #veil{opacity:1}
+body.show #box{opacity:1;transform:translate(-50%,-50%)}
+body.out #veil,body.out #box{opacity:0;transition:.4s}
+.code{font-family:var(--mono);font-size:12px;letter-spacing:3px;color:#8a8e94;text-align:center}
+h1{font-family:var(--type);font-weight:400;font-size:52px;letter-spacing:16px;text-align:center;margin:6px 0 30px;text-shadow:-2px 0 rgba(255,30,50,.6),2px 0 rgba(60,200,255,.3)}
+h1 .r{color:var(--red-hi)}
+.view{display:none}.view.on{display:block}
+.it{position:relative;display:flex;align-items:center;height:62px;padding:0 26px;margin-bottom:8px;border:1px solid rgba(255,255,255,.1);background:rgba(10,11,14,.82);transition:.15s}
+.it b{flex:1;font-weight:500;font-size:17px;letter-spacing:3px;text-transform:uppercase}
+.it small{display:block;font-family:var(--mono);font-size:11.5px;letter-spacing:1.6px;color:#7f838a;margin-top:3px;font-weight:400}
+.it.on{border-color:rgba(255,70,90,.8);background:linear-gradient(90deg,rgba(211,25,44,.32),rgba(211,25,44,.06));box-shadow:0 0 26px rgba(211,25,44,.25)}
+.it.on::before{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;background:var(--red-hi)}
+.tr{position:relative;width:240px;height:4px;background:rgba(255,255,255,.14);margin-right:18px}
+.fi{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--red-lo),var(--red-hi))}
+.kn{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;background:#fff;transform:rotate(45deg);box-shadow:0 0 8px rgba(255,60,80,.8)}
+.val{width:48px;text-align:right;font-family:var(--mono);font-size:15px}
+.ask{text-align:center}
+.ask p{font-size:20px;letter-spacing:2px;margin-bottom:8px}
+.ask .sub{font-family:var(--mono);font-size:12.5px;letter-spacing:1.4px;color:#8a8e94;margin-bottom:26px}
+.bt{display:flex;gap:16px;justify-content:center}
+.btn{min-width:180px;height:52px;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:16px;letter-spacing:3px;border:1px solid rgba(255,255,255,.18);background:rgba(10,11,14,.85);transition:.15s}
+.btn.on{border-color:rgba(255,70,90,.85);background:linear-gradient(180deg,rgba(186,18,36,.85),rgba(110,8,20,.9));box-shadow:0 0 22px rgba(255,40,60,.4)}
+.hint{margin-top:26px;display:flex;justify-content:center;gap:22px;font-family:var(--mono);font-size:12px;letter-spacing:1.6px;color:#9a9ea4}
+.hint span{display:flex;align-items:center;gap:7px}
+.hint img{width:26px}
+.hint kbd{font-family:var(--mono);font-size:11px;padding:2px 6px;border:1px solid rgba(255,255,255,.3)}
+.hint .pd{display:none}.padmode .hint .pd{display:flex}.padmode .hint .kd{display:none}
+</style>
+</head>
+<body>
+<div id="veil"></div><div class="scan"></div>
+<div id="box">
+  <div class="code">CTI // OVERDIVE SUSPENDED</div>
+  <h1 id="mTitle">PAUSA</h1>
+  <div class="view on" id="vMenu">
+    <div class="it" id="i0"><b><span id="lVol">VOLUMEN DEL JUEGO</span><small>◀ ▶</small></b><div class="tr" id="track"><div class="fi" id="fill"></div><div class="kn" id="knob"></div></div><div class="val" id="val">100%</div></div>
+    <div class="it" id="i1"><b id="lCont">CONTINUAR</b></div>
+    <div class="it" id="i2"><b><span id="lExit">VOLVER AL LAUNCHER</span><small id="lExitSub"></small></b></div>
+  </div>
+  <div class="view ask" id="vAsk">
+    <p id="t">¿Cerrar el juego y volver al launcher?</p>
+    <div class="sub" id="sub">Se perderá lo que no hayas guardado.</div>
+    <div class="bt"><div class="btn" id="b0">SÍ</div><div class="btn" id="b1">NO</div></div>
+  </div>
+  <div class="hint">
+    <span class="pd"><img src="assets/glifos/A.png" alt=""><i id="hA">Aceptar</i></span><span class="pd"><img src="assets/glifos/B.png" alt=""><i id="hB">Volver</i></span>
+    <span class="kd"><kbd>ENTER</kbd><i id="kA">Aceptar</i></span><span class="kd"><kbd>ESC</kbd><i id="kB">Volver</i></span>
+  </div>
+</div>
+<script>
+(() => {
+  const host = window.ptHost;
+  const $ = (id) => document.getElementById(id);
+  const send = (cmd, extra) => host && host.postMessage(JSON.stringify(Object.assign({ cmd }, extra || {})));
+  const T = {
+    es: { title: 'PAUSA', vol: 'VOLUMEN DEL JUEGO', cont: 'CONTINUAR', exit: 'VOLVER AL LAUNCHER', lost: 'Se perderá lo que no hayas guardado.', ask: '¿Cerrar el juego y volver al launcher?', yes: 'SÍ', no: 'NO', ok: 'Aceptar', back: 'Volver' },
+    en: { title: 'PAUSE', vol: 'GAME VOLUME', cont: 'CONTINUE', exit: 'BACK TO LAUNCHER', lost: 'Unsaved progress will be lost.', ask: 'Close the game and return to the launcher?', yes: 'YES', no: 'NO', ok: 'Confirm', back: 'Back' }
+  };
+  const sfx = {}; ['move', 'ok', 'back', 'tick', 'open'].forEach((n) => { sfx[n] = new Audio('assets/sfx/' + n + '.ogg'); sfx[n].volume = .45; });
+  const play = (n) => { try { sfx[n].currentTime = 0; sfx[n].play().catch(() => {}); } catch (e) {} };
+  const items = [$('i0'), $('i1'), $('i2')], btn = [$('b0'), $('b1')];
+  let open = false, locked = false, view = 'menu', msel = 1, sel = 1, vol = 100, shownAt = 0;
+  const paint = () => {
+    items.forEach((it, i) => it.classList.toggle('on', i === msel));
+    btn.forEach((b, i) => b.classList.toggle('on', i === sel));
+    $('fill').style.width = vol + '%'; $('knob').style.left = vol + '%'; $('val').textContent = vol + '%';
+  };
+  const setView = (v) => { view = v; $('vMenu').classList.toggle('on', v === 'menu'); $('vAsk').classList.toggle('on', v === 'ask'); paint(); };
+  let volT = null;
+  const setVol = (v, quiet) => { v = Math.max(0, Math.min(100, Math.round(v / 5) * 5)); if (v === vol) return; vol = v; paint(); if (!quiet) play('tick'); clearTimeout(volT); volT = setTimeout(() => send('gvol', { value: vol }), 60); };
+  const resume = () => { if (!open || locked) return; locked = true; play('back'); document.body.classList.remove('show'); setTimeout(() => send('exitNo'), 300); };
+  const leave = () => { if (!open || locked) return; locked = true; play('ok'); document.body.classList.add('out'); setTimeout(() => send('exitYes'), 450); };
+  const activate = () => {
+    if (view === 'menu') { if (msel === 1) resume(); else if (msel === 2) { play('open'); sel = 1; setView('ask'); } }
+    else if (sel === 0) leave(); else { play('back'); setView('menu'); }
+  };
+  items.forEach((it, i) => {
+    it.addEventListener('mouseenter', () => { if (view === 'menu' && msel !== i) { msel = i; paint(); play('move'); } });
+    if (i > 0) it.addEventListener('click', () => { msel = i; activate(); });
+  });
+  btn.forEach((b, i) => { b.addEventListener('mouseenter', () => { if (sel !== i) { sel = i; paint(); play('move'); } }); b.addEventListener('click', () => { sel = i; activate(); }); });
+  const tr = $('track');
+  tr.addEventListener('pointerdown', (e) => {
+    tr.setPointerCapture(e.pointerId); msel = 0;
+    const at = (ev) => { const r = tr.getBoundingClientRect(); setVol(Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * 100, true); };
+    at(e);
+    const up = () => { tr.removeEventListener('pointermove', at); tr.removeEventListener('pointerup', up); play('tick'); };
+    tr.addEventListener('pointermove', at); tr.addEventListener('pointerup', up);
+  });
+  const key = (k) => {
+    if (!open || locked) return;
+    if (view === 'menu') {
+      if (k === 'UP') { msel = (msel + 2) % 3; paint(); play('move'); }
+      if (k === 'DOWN') { msel = (msel + 1) % 3; paint(); play('move'); }
+      if ((k === 'LEFT' || k === 'RIGHT') && msel === 0) setVol(vol + (k === 'LEFT' ? -5 : 5));
+      if (k === 'A') activate();
+      if (k === 'B') resume();
+    } else {
+      if (k === 'LEFT' || k === 'RIGHT') { const n = k === 'LEFT' ? 0 : 1; if (n !== sel) { sel = n; paint(); play('move'); } }
+      if (k === 'A') activate();
+      if (k === 'B') { play('back'); setView('menu'); }
+    }
+  };
+  const padMode = (on) => document.documentElement.classList.toggle('padmode', on);
+  let mAt = null;
+  addEventListener('mousemove', (e) => { if (mAt && Math.abs(e.screenX - mAt[0]) + Math.abs(e.screenY - mAt[1]) > 12) padMode(false); mAt = [e.screenX, e.screenY]; });
+  addEventListener('keydown', (e) => {
+    const m = { ArrowLeft: 'LEFT', ArrowRight: 'RIGHT', ArrowUp: 'UP', ArrowDown: 'DOWN', a: 'LEFT', d: 'RIGHT', w: 'UP', s: 'DOWN', Enter: 'A', ' ': 'A', Escape: 'B', Backspace: 'B', F1: 'B' };
+    if (!m[e.key]) return;
+    e.preventDefault(); padMode(false);
+    if (performance.now() - shownAt < 350) return;
+    if (e.repeat && !['LEFT', 'RIGHT', 'UP', 'DOWN'].includes(m[e.key])) return;
+    key(m[e.key]);
+  });
+  if (host) host.addEventListener('message', (ev) => {
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (m.type === 'show') {
+      const L = T[(m.data && m.data.lang) || 'es'] || T.es;
+      $('mTitle').innerHTML = L.title.replace(/^(.)/, '<span class="r">$1</span>');
+      $('lVol').textContent = L.vol; $('lCont').textContent = L.cont; $('lExit').textContent = L.exit; $('lExitSub').textContent = L.lost;
+      $('t').textContent = L.ask; $('sub').textContent = L.lost; btn[0].textContent = L.yes; btn[1].textContent = L.no;
+      $('hA').textContent = $('kA').textContent = L.ok; $('hB').textContent = $('kB').textContent = L.back;
+      vol = Math.max(0, Math.min(100, parseInt((m.data && m.data.gvol) || '100', 10)));
+      padMode(!(m.data && m.data.via === 'kb')); mAt = null;
+      msel = 1; sel = 1; setView('menu'); shownAt = performance.now(); locked = false; open = true; play('open');
+      document.body.classList.remove('out'); requestAnimationFrame(() => document.body.classList.add('show'));
+    }
+    if (m.type === 'hide') { open = false; document.body.classList.remove('show', 'out'); }
+    // PlayStation (occidente): A de Xbox = aceptar, B = volver
+    if (m.type === 'btn') { padMode(true); if (performance.now() - shownAt > 250) key(m.data); }
+  });
+  if (!host) { document.body.classList.add('show'); open = true; paint(); }
+  else paint();
+})();
+</script>
+</body>
+</html>

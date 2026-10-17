@@ -1,0 +1,1253 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>The 3rd Birthday — Dionixu's Launcher</title>
+<style>
+@font-face{font-family:"T3B Type";src:url(fonts/SpecialElite-Regular.ttf) format("truetype")}
+@font-face{font-family:"T3B Mono";src:url(fonts/ShareTechMono-Regular.ttf) format("truetype")}
+@font-face{font-family:"T3B Sans";src:url(fonts/Barlow-Regular.ttf) format("truetype");font-weight:400}
+@font-face{font-family:"T3B Sans";src:url(fonts/Barlow-Medium.ttf) format("truetype");font-weight:500}
+@font-face{font-family:"T3B Sans";src:url(fonts/Barlow-SemiBold.ttf) format("truetype");font-weight:600}
+:root{
+  --red:#d3192c;--red-hi:#ff3346;--red-lo:#7d0d18;--ink:#ebe8e4;--mute:#8d9198;--dim:#585c63;--line:rgba(255,255,255,.085);
+  --panel:rgba(11,12,15,.80);--panel2:rgba(17,18,22,.88);--ok:#36d37f;--warn:#e9a23b;
+  --type:"T3B Type","Special Elite","Courier New",monospace;
+  --mono:"T3B Mono","Share Tech Mono",Consolas,"Lucida Console",monospace;
+  --sans:"T3B Sans","Barlow",Bahnschrift,"Segoe UI",sans-serif;
+  --s:1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#050506;color:var(--ink);font-family:var(--sans);user-select:none;
+  cursor:image-set(url(assets/cursor.png) 1x,url(assets/cursor@2x.png) 2x) 2 2,auto}
+button,[data-nav],[data-nav] *,[data-d],[data-vc]{cursor:image-set(url(assets/cursor_on.png) 1x,url(assets/cursor_on@2x.png) 2x) 2 2,pointer}
+body.pad,body.pad *{cursor:none!important}
+button{font:inherit;color:inherit;background:none;border:0}
+img{display:block;-webkit-user-drag:none}
+
+#stage{position:absolute;left:50%;top:50%;width:1600px;height:900px;transform:translate(-50%,-50%) scale(var(--s));transform-origin:50% 50%;overflow:hidden;background:#07080a}
+
+/* ───── fondo ───── */
+.bg{position:absolute;inset:-30px;background:url(assets/bg_dark.jpg) 72% 40%/cover no-repeat;will-change:transform;animation:kb 38s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1.07) translate(0,0)}to{transform:scale(1) translate(-12px,6px)}}
+.noanim .bg{animation:none}
+.shade{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(5,6,8,.97) 0%,rgba(5,6,8,.88) 22%,rgba(5,6,8,.45) 46%,rgba(5,6,8,0) 66%),
+             linear-gradient(0deg,rgba(5,6,8,.98) 0%,rgba(5,6,8,.75) 24%,rgba(5,6,8,0) 48%),
+             linear-gradient(180deg,rgba(5,6,8,.85) 0%,rgba(5,6,8,0) 16%),
+             radial-gradient(ellipse at 74% 42%,rgba(0,0,0,0) 30%,rgba(0,0,0,.55) 100%)}
+#ash{position:absolute;inset:0;pointer-events:none}
+.scan{position:absolute;inset:0;pointer-events:none;opacity:.22;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}
+.grain{position:absolute;inset:-50%;pointer-events:none;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
+.noanim .grain{animation:none}
+.frame{position:absolute;inset:14px;pointer-events:none;border:1px solid rgba(255,255,255,.05)}
+.frame::before,.frame::after{content:"";position:absolute;width:14px;height:14px;border:1px solid rgba(255,255,255,.28)}
+.frame::before{left:-1px;bottom:-1px;border-right:0;border-top:0}
+.frame::after{right:-1px;top:-1px;border-left:0;border-bottom:0}
+
+/* ───── barra superior ───── */
+#top{position:absolute;left:0;right:0;top:0;height:58px;display:flex;align-items:center;padding:0 28px 0 32px;border-bottom:1px solid var(--line)}
+#top .brand{font-family:var(--sans);font-weight:600;font-size:15px;letter-spacing:2.6px;color:#f2f0ec}
+#top .brand b{color:var(--red);font-weight:600}
+#top .sp{flex:1}
+#drag{position:fixed;left:0;top:0;width:45%;height:30px;-webkit-app-region:drag;z-index:5}
+body.fs #drag,body.fs .wb{display:none}
+#dev{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;letter-spacing:1.6px;color:var(--red-hi);margin-right:26px}
+#dev i{width:7px;height:7px;border-radius:50%;background:var(--red-hi);box-shadow:0 0 8px var(--red-hi);animation:blink 2.4s infinite}
+@keyframes blink{50%{opacity:.35}}
+.wb{width:42px;height:34px;display:flex;align-items:center;justify-content:center;color:#cfd1d4;opacity:.8;transition:.15s}
+.wb:hover,.wb.focus{opacity:1;color:#fff;background:rgba(255,255,255,.06)}
+.wb.x:hover,.wb.x.focus{background:var(--red)}
+.wb svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5}
+#sub{position:absolute;left:34px;top:70px;font-family:var(--mono);font-size:12px;letter-spacing:2.2px;color:#9a9ea5;line-height:17px;opacity:.85}
+#sub::before{content:"";position:absolute;left:-14px;top:8px;width:6px;height:1px;background:#9a9ea5}
+
+/* ───── menú lateral ───── */
+#nav{position:absolute;left:0;top:136px;width:236px}
+.ni{position:relative;display:flex;align-items:center;gap:18px;width:236px;height:54px;padding-left:30px;font-family:var(--sans);font-weight:500;font-size:15px;letter-spacing:1.6px;color:#c9cbcf;text-transform:uppercase;transition:color .2s,background .2s}
+.ni svg{width:20px;height:20px;fill:currentColor;opacity:.85;flex:none}
+.ni::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--red);transform:scaleY(0);transition:transform .25s}
+.ni.on{color:var(--red-hi);background:linear-gradient(90deg,rgba(211,25,44,.22),rgba(211,25,44,0))}
+.ni.on::before{transform:scaleY(1)}
+.ni:hover,.ni.focus{color:#fff;background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(255,255,255,0))}
+.ni.on.focus,.ni.on:hover{color:#ff5a68;background:linear-gradient(90deg,rgba(211,25,44,.3),rgba(211,25,44,0))}
+.ni.vsel{height:66px}
+.ni{text-align:left}
+.ni .vt{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.ni .vt small{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:1.2px;color:#8f939a;text-transform:none}
+.ni .vt small{margin-left:-4px}
+.ni .vt small b{font-weight:400;color:#e7e5e1;min-width:104px;text-align:center}
+.ni .vt small i{font-style:normal;font-size:16px;width:16px;text-align:center;color:#777;transition:color .15s}
+.ni .vt small i:hover{color:var(--red-hi)}
+.ni.focus .vt small i{color:#bbb}
+.ni.focus::after{content:"";position:absolute;right:0;top:50%;width:6px;height:6px;margin-top:-3px;border-top:1px solid var(--red-hi);border-right:1px solid var(--red-hi);transform:rotate(45deg)}
+
+/* ───── páginas ───── */
+.page{position:absolute;inset:0;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s}
+.page.on{opacity:1;visibility:visible;transition:opacity .35s}
+.page.on>*{pointer-events:auto}
+#top,#nav{z-index:3}   /* la capa de la página no tapa el menú lateral ni la barra superior */
+.page.on .rise{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.d1{animation-delay:.05s!important}.d2{animation-delay:.12s!important}.d3{animation-delay:.19s!important}.d4{animation-delay:.26s!important}.d5{animation-delay:.33s!important}
+
+/* inicio · título */
+#title{position:absolute;left:236px;top:196px;width:560px;height:170px}
+#title .em{position:absolute;left:58px;top:-62px;width:250px;opacity:.82;filter:drop-shadow(0 0 22px rgba(160,0,20,.45));animation:emb 7s ease-in-out infinite}
+@keyframes emb{50%{opacity:.62;transform:translate(2px,-2px) rotate(-.6deg)}}
+.logo{position:relative;font-family:var(--type);font-size:41px;letter-spacing:9px;color:#f1eee9;white-space:nowrap;
+  text-shadow:-1px 0 rgba(255,40,60,.45),1px 0 rgba(80,200,255,.25),0 0 18px rgba(0,0,0,.9)}
+.logo .r{color:var(--red-hi)}
+.logo small{font-size:13px;letter-spacing:1px;vertical-align:top;margin-left:-6px}
+.logo.glitch{animation:gl .5s steps(2) 1}
+@keyframes gl{0%{transform:translate(0)}20%{transform:translate(-3px,1px);clip-path:inset(10% 0 55% 0)}40%{transform:translate(3px,-1px);clip-path:inset(60% 0 5% 0)}60%{transform:translate(-1px,0);clip-path:none}100%{transform:none}}
+#title .ed{position:relative;margin:12px 0 0 132px;font-family:var(--sans);font-size:15px;letter-spacing:7px;color:#c6c8cb}
+#title .tag{position:relative;margin:36px 0 0 -12px;font-family:var(--sans);font-size:16px;letter-spacing:.6px;color:#c4c6ca}
+
+/* botón jugar */
+#playBig{position:absolute;left:80px;top:444px;width:430px;height:72px;display:flex;align-items:center;justify-content:center;gap:28px;
+  font-family:var(--sans);font-weight:500;font-size:28px;letter-spacing:8px;color:#fff;
+  background:linear-gradient(180deg,rgba(186,18,36,.86),rgba(110,8,20,.9));border:1px solid rgba(255,70,90,.75);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6) inset,0 0 26px rgba(211,25,44,.35);transition:transform .15s,box-shadow .2s,filter .2s;overflow:hidden}
+#playBig svg{width:22px;height:22px;fill:#fff}
+#playBig::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.22) 50%,transparent 65%);background-size:250% 100%;background-position:120% 0}
+#playBig:hover::before,#playBig.focus::before{animation:sheen 1.1s ease-out}
+@keyframes sheen{to{background-position:-120% 0}}
+#playBig:hover,#playBig.focus{box-shadow:0 0 0 1px rgba(0,0,0,.6) inset,0 0 44px rgba(255,40,60,.6);filter:brightness(1.12)}
+#playBig:active{transform:scale(.985)}
+.corner{position:absolute;width:12px;height:12px;border:2px solid #ff4d5e;pointer-events:none}
+.corner.a{left:-4px;top:-4px;border-right:0;border-bottom:0}.corner.b{right:-4px;bottom:-4px;border-left:0;border-top:0}
+
+/* estado */
+#status{position:absolute;left:80px;top:546px;width:430px;height:66px;display:flex;align-items:center}
+#status .box{flex:1;padding-left:16px;border-left:1px solid rgba(255,255,255,.18);height:54px;display:flex;flex-direction:column;justify-content:center}
+#status .k{font-family:var(--mono);font-size:13px;letter-spacing:1.8px;color:#9ea2a8}
+#status .v{font-size:16px;color:#e6e4e0;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:262px}
+#status .sep{width:1px;height:54px;background:rgba(255,255,255,.18);margin:0 22px 0 8px}
+.chip{display:flex;align-items:center;gap:9px;height:30px;padding:0 13px;font-family:var(--mono);font-size:14px;letter-spacing:2px;border:1px solid currentColor;white-space:nowrap}
+.chip i{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.chip.ok{color:var(--ok);background:rgba(54,211,127,.07)}.chip.warn{color:var(--warn);background:rgba(233,162,59,.07)}.chip.bad{color:var(--red-hi);background:rgba(255,51,70,.07)}
+.chip.busy i{animation:blink .8s infinite}
+
+/* ficha */
+#agent{position:absolute;right:56px;top:520px;width:210px;padding:10px 12px 12px;font-family:var(--mono);font-size:11.5px;letter-spacing:.8px;color:#cfd1d4}
+#agent::before,#agent::after{content:"";position:absolute;width:10px;height:10px;border:1px solid rgba(255,255,255,.5)}
+#agent::before{left:0;top:0;border-right:0;border-bottom:0}#agent::after{right:0;bottom:0;border-left:0;border-top:0}
+#agent .n{color:#f3f1ee;font-size:12.5px}#agent .n::before{content:"> ";color:#aaa}
+#agent .s{color:#8e9298;margin:3px 0 7px 14px;font-size:10.5px}
+#agent .bc{height:12px;margin-left:14px;display:flex;gap:1px}
+#agent .bc span{background:#d9d9d9;height:100%}
+#agent .t{margin:7px 0 0 14px;color:#8e9298;font-size:10.5px}#agent .t b{color:#e6e4e0;font-weight:400}
+
+/* tarjetas */
+.cards{position:absolute;left:80px;top:650px;width:600px;height:180px;display:grid;grid-template-columns:1fr}
+.card{position:relative;background:var(--panel);border:1px solid var(--line);padding:16px 22px 16px;overflow:hidden}
+.card::after{content:"";position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-right:1px solid rgba(255,255,255,.35);border-bottom:1px solid rgba(255,255,255,.35)}
+.card h3{position:relative;font-family:var(--sans);font-weight:500;font-size:15px;letter-spacing:2.4px;color:#e3e1dd;padding-left:16px;margin-bottom:12px;text-transform:uppercase}
+.card h3::before{content:"";position:absolute;left:0;top:1px;bottom:1px;width:3px;background:var(--red)}
+.card .row{display:flex;gap:20px}
+.thumb{flex:none;width:176px;height:118px;background:#111 center/cover;filter:grayscale(.35) contrast(1.08) brightness(.85);border:1px solid rgba(255,255,255,.06)}
+.card .tt{font-size:17px;color:#f0eeea;margin:2px 0 6px}
+.card .dd{font-size:13.5px;line-height:19px;color:#999da3}
+.card .mono{font-family:var(--mono);font-size:12.5px;letter-spacing:1px;color:#8f9399}
+.card .go{position:absolute;right:16px;bottom:12px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:#cfd1d4}
+.card .go svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.card[data-nav]:hover,.card.focus{border-color:rgba(255,70,90,.45);box-shadow:0 0 24px rgba(211,25,44,.16) inset}
+.btnline{display:inline-flex;align-items:center;gap:14px;height:42px;padding:0 20px;margin-top:10px;font-family:var(--sans);font-weight:500;font-size:15px;letter-spacing:2.6px;
+  color:#ece9e5;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);transition:.15s;text-transform:uppercase}
+.btnline svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.btnline:hover,.btnline.focus{border-color:rgba(255,70,90,.7);background:rgba(211,25,44,.16);color:#fff}
+.btnline.red{background:linear-gradient(180deg,rgba(186,18,36,.8),rgba(110,8,20,.85));border-color:rgba(255,70,90,.7)}
+.btnline.red:hover,.btnline.red.focus{box-shadow:0 0 22px rgba(255,40,60,.5);filter:brightness(1.12)}
+.btnline[disabled]{opacity:.35;pointer-events:none}
+.xt{display:flex;gap:14px}
+.xt .it{flex:1;display:flex;flex-direction:column;gap:7px}
+.xt .im{height:104px;background:#111 center/cover;filter:grayscale(.3) contrast(1.06) brightness(.85);border:1px solid rgba(255,255,255,.06);transition:.2s}
+.xt .im.emb{background:radial-gradient(circle at 50% 55%,#7b0b16,#2a0207 75%)}
+.xt .im.emb img{width:78%;margin:12px auto 0;filter:drop-shadow(0 0 8px rgba(0,0,0,.6))}
+.xt .lb{font-size:14px;color:#c9cbce;text-align:center}
+.xt .it:hover .im,.xt .it.focus .im{filter:none;border-color:rgba(255,70,90,.6);box-shadow:0 0 18px rgba(211,25,44,.35)}
+.xt .it:hover .lb,.xt .it.focus .lb{color:#fff}
+
+/* paneles de subpáginas */
+.panel{position:absolute;left:262px;right:44px;top:122px;bottom:74px;background:var(--panel);border:1px solid var(--line);padding:30px 38px}
+.panel::before{content:"";position:absolute;left:-1px;top:-1px;width:14px;height:14px;border-left:1px solid rgba(255,255,255,.4);border-top:1px solid rgba(255,255,255,.4)}
+.ph{display:flex;align-items:flex-end;gap:22px;margin-bottom:22px}
+.ph h2{font-family:var(--type);font-weight:400;font-size:30px;letter-spacing:6px;color:#f1eee9}
+.ph h2 .r{color:var(--red-hi)}
+.ph .code{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:#7f838a;margin-bottom:6px}
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.tab{position:relative;height:42px;padding:0 22px;font-family:var(--sans);font-weight:500;font-size:14.5px;letter-spacing:2.2px;color:#9a9ea4;text-transform:uppercase}
+.tab::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:var(--red);transform:scaleX(0);transition:transform .25s}
+.tab.on{color:#fff}.tab.on::after{transform:scaleX(1)}
+.tab:hover,.tab.focus{color:#fff;background:rgba(255,255,255,.04)}
+.tabs .gl{display:flex;align-items:center;gap:6px;margin-left:auto;font-family:var(--mono);font-size:12px;color:#777;letter-spacing:1px}
+.tabs .gl img{width:30px}
+.scroll{position:absolute;left:38px;right:22px;top:166px;bottom:24px;overflow-y:auto;padding-right:16px}
+.scroll::-webkit-scrollbar{width:4px}.scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18)}
+.grp{font-family:var(--mono);font-size:12px;letter-spacing:2.4px;color:var(--red-hi);margin:18px 0 6px}
+.grp:first-child{margin-top:0}
+
+/* filas de ajustes */
+.opt{display:flex;align-items:center;height:56px;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.05);transition:background .15s}
+.opt .l{flex:1}
+.opt .l b{display:block;font-weight:500;font-size:15.5px;letter-spacing:1.2px;color:#e8e6e2;text-transform:uppercase}
+.opt .l span{display:block;font-size:13px;color:#83878d;margin-top:2px}
+.opt.focus,.opt:hover{background:linear-gradient(90deg,rgba(211,25,44,.16),rgba(211,25,44,.02))}
+.opt.focus{box-shadow:2px 0 0 var(--red) inset}
+.cyc{display:flex;align-items:center;width:270px;justify-content:space-between}
+.cyc .a{width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:#888;font-family:var(--mono);font-size:16px}
+.cyc .a:hover{color:#fff}
+.cyc .v{flex:1;text-align:center;font-family:var(--mono);font-size:15px;letter-spacing:1.6px;color:#f0eeea}
+.cyc .pips{display:flex;gap:4px;justify-content:center;margin-top:5px}
+.cyc .pips i{width:14px;height:2px;background:rgba(255,255,255,.18)}.cyc .pips i.on{background:var(--red-hi)}
+.sld{display:flex;align-items:center;gap:14px;width:270px}
+.sld .tr{position:relative;flex:1;height:4px;background:rgba(255,255,255,.12)}
+.sld .fi{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--red-lo),var(--red-hi))}
+.sld .kn{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;background:#fff;transform:rotate(45deg);box-shadow:0 0 8px rgba(255,60,80,.7)}
+.sld .nv{width:44px;text-align:right;font-family:var(--mono);font-size:14px;color:#f0eeea}
+.act{width:270px;display:flex;justify-content:center}
+.act span{font-family:var(--mono);font-size:13.5px;letter-spacing:2px;color:#f0eeea;border:1px solid rgba(255,255,255,.25);padding:6px 16px}
+.opt.focus .act span,.opt:hover .act span{border-color:var(--red-hi);color:#fff}
+.soon{font-family:var(--mono);font-size:12.5px;letter-spacing:2px;color:var(--warn);width:270px;text-align:center}
+
+/* tabla de controles */
+.binds{display:grid;grid-template-columns:1fr 210px 210px;margin-top:4px}
+.binds .h{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:#7c8087;padding:8px 16px;border-bottom:1px solid var(--line)}
+.binds .n{display:flex;align-items:center;gap:12px;height:46px;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.04);font-size:14.5px;color:#d9d7d3}
+.binds .n em{font-style:normal;font-family:var(--mono);font-size:12px;color:#7f838a;margin-left:auto;padding-right:6px}
+.psp{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.3);font-size:13px;flex:none}
+.psp.sh{border-radius:4px;font-family:var(--mono);font-size:10px;width:30px}
+.kc{display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-bottom:1px solid rgba(255,255,255,.04);font-family:var(--mono);font-size:13.5px;letter-spacing:1px;color:#ece9e5}
+.kc span{min-width:120px;text-align:center;padding:5px 10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03)}
+.kc img{width:30px}
+.kc.focus span,.kc:hover span{border-color:var(--red-hi);background:rgba(211,25,44,.18);color:#fff}
+.kc.wait span{border-color:var(--warn);color:var(--warn);animation:blink .7s infinite}
+.kc.na{color:#555}.kc.na span{border-style:dashed}
+
+/* jugar */
+.vers{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.ver{position:relative;background:var(--panel2);border:1px solid var(--line);transition:.2s;text-align:left}
+.ver .im{height:170px;background:#111 center/cover;filter:grayscale(.45) brightness(.72);transition:.25s}
+.ver .bd{padding:16px 20px 18px}
+.ver .nm{font-family:var(--sans);font-weight:600;font-size:19px;letter-spacing:1.4px;color:#f0eeea;text-transform:uppercase}
+.ver .ds{font-size:13.5px;line-height:19px;color:#94989e;margin:6px 0 14px;min-height:57px}
+.ver .tag{position:absolute;left:14px;top:12px;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#fff;background:var(--red);padding:3px 8px}
+.ver.sel{border-color:rgba(255,70,90,.8);box-shadow:0 0 0 1px rgba(255,70,90,.5) inset,0 0 30px rgba(211,25,44,.25)}
+.ver.sel .im{filter:none}
+.ver:hover,.ver.focus{border-color:rgba(255,255,255,.35)}
+.ver.sel.focus{border-color:#ff5d6c}
+.ver .ck{position:absolute;right:14px;top:12px;width:22px;height:22px;border:1px solid rgba(255,255,255,.6);transform:rotate(45deg);background:rgba(0,0,0,.4)}
+.ver.sel .ck{background:var(--red);border-color:#ff6b78;box-shadow:0 0 12px var(--red)}
+.ver.off{opacity:.55}
+.playbar{display:flex;align-items:center;gap:26px;margin-top:26px}
+.playbar .info{flex:1;font-size:14px;color:#9a9ea4;line-height:20px}
+.playbar .info b{color:#ece9e5;font-weight:500}
+
+/* extras */
+.mods{display:flex;flex-direction:column}
+.mod{display:flex;align-items:center;gap:18px;min-height:64px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,.05)}
+.mod .l{flex:1}.mod .l b{font-weight:500;font-size:15.5px;color:#ece9e5}.mod .l span{display:block;font-size:13px;color:#83878d;margin-top:3px}
+.mod .pt{font-family:var(--mono);font-size:11.5px;letter-spacing:1px;color:#8d9197}
+.tog{width:52px;height:24px;border:1px solid rgba(255,255,255,.3);position:relative;flex:none}
+.tog i{position:absolute;left:3px;top:3px;width:16px;height:16px;background:#777;transition:.2s}
+.tog.on{border-color:var(--red-hi)}.tog.on i{left:31px;background:var(--red-hi);box-shadow:0 0 10px var(--red-hi)}
+.mod.focus,.mod:hover{background:linear-gradient(90deg,rgba(211,25,44,.16),rgba(211,25,44,.02))}
+.empty{padding:26px 16px;color:#8a8e94;font-size:14.5px;line-height:22px;border:1px dashed rgba(255,255,255,.12)}
+.empty code{font-family:var(--mono);color:#d8d6d2;font-size:13px}
+.gal{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.shot{aspect-ratio:16/9;background:#111 center/cover;border:1px solid var(--line);transition:.15s}
+.shot:hover,.shot.focus{border-color:var(--red-hi);box-shadow:0 0 16px rgba(211,25,44,.4)}
+.cred{columns:2;column-gap:46px}
+.cred div{break-inside:avoid;margin-bottom:20px}
+.cred h4{font-family:var(--mono);font-weight:400;font-size:12px;letter-spacing:2.4px;color:var(--red-hi);margin-bottom:6px}
+.cred p{font-size:14.5px;line-height:21px;color:#cfcdc9}
+.cred p small{color:#7f838a;font-size:12.5px}
+.tools{display:flex;gap:12px;margin-bottom:16px}
+
+/* pie */
+#foot{position:absolute;left:34px;right:34px;bottom:0;height:56px;display:flex;align-items:center;gap:20px;font-family:var(--mono);font-size:12px;letter-spacing:2.2px;color:#7c8087}
+#foot .ln{flex:0 0 200px;height:1px;background:rgba(255,255,255,.12)}
+#foot .sp{flex:1}
+#hints{display:flex;gap:20px;align-items:center;color:#a4a8ae}
+#hints span{display:flex;align-items:center;gap:7px}
+#hints img{width:26px;height:26px}
+#hints kbd{font-family:var(--mono);font-size:11px;padding:2px 6px;border:1px solid rgba(255,255,255,.3);color:#ddd}
+
+/* aviso */
+#note{position:absolute;left:50%;top:76px;transform:translate(-50%,-20px);opacity:0;max-width:820px;padding:12px 22px;background:rgba(14,14,17,.95);border:1px solid rgba(255,255,255,.14);border-left:3px solid var(--red);font-size:14.5px;color:#eee;transition:.3s;pointer-events:none;z-index:40}
+#note.on{opacity:1;transform:translate(-50%,0)}
+#note.err{border-left-color:var(--red-hi);color:#ffd6da}
+
+/* diálogo */
+.dlg{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);opacity:0;visibility:hidden;transition:.25s}
+.dlg.on{opacity:1;visibility:visible}
+.dlg .bx{position:relative;width:540px;padding:34px 40px 30px;background:#0d0e11;border:1px solid rgba(255,255,255,.12);border-top:2px solid var(--red);text-align:center}
+.dlg .bx h4{font-family:var(--type);font-weight:400;font-size:26px;letter-spacing:4px;color:#f1eee9}
+.dlg .bx p{font-size:14.5px;color:#9a9ea4;margin:12px 0 24px;line-height:20px}
+.dlg .bt{display:flex;gap:16px;justify-content:center}
+/* en el diálogo solo la opción seleccionada va en rojo */
+.dlg .btnline{min-width:170px;justify-content:center}
+.dlg .btnline.focus,.dlg .btnline:hover{background:linear-gradient(180deg,rgba(186,18,36,.85),rgba(110,8,20,.9));border-color:rgba(255,70,90,.8);box-shadow:0 0 22px rgba(255,40,60,.45);color:#fff}
+.lbx{position:absolute;inset:0;z-index:55;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center}
+.lbx.on{display:flex}.lbx img{max-width:88%;max-height:84%;border:1px solid rgba(255,255,255,.2)}
+
+/* ───── superposiciones cinematográficas ───── */
+.ov{position:absolute;inset:0;z-index:80;pointer-events:none;opacity:0;visibility:hidden}
+.ov.on{opacity:1;visibility:visible;pointer-events:auto}
+#noise{position:absolute;inset:0;width:100%;height:100%;opacity:.0}
+
+/* intro */
+#intro{background:#000;display:flex;align-items:center;justify-content:center}
+#intro .log{position:absolute;left:70px;top:70px;font-family:var(--mono);font-size:14px;line-height:22px;letter-spacing:1.6px;color:#9fa3a9;white-space:pre}
+#intro .log b{color:var(--red-hi);font-weight:400}
+#intro .hl{position:absolute;left:0;right:0;top:50%;height:2px;background:var(--red-hi);box-shadow:0 0 18px var(--red-hi),0 0 60px var(--red);transform:scaleX(0);opacity:0}
+#intro .mid{position:relative;width:700px;height:260px}
+#intro .em{position:absolute;left:180px;top:-30px;width:330px;opacity:0;filter:blur(18px) brightness(1.4);clip-path:inset(0 100% 0 0)}
+#intro .logo{position:absolute;left:0;right:0;top:110px;text-align:center;font-size:48px;letter-spacing:12px}
+#intro .logo span{opacity:0;display:inline-block}
+#intro .q{position:absolute;left:0;right:0;top:200px;text-align:center;font-family:var(--sans);font-size:16px;letter-spacing:6px;color:#bdbfc3;opacity:0}
+#intro .skip{position:absolute;right:50px;bottom:40px;font-family:var(--mono);font-size:12px;letter-spacing:2.2px;color:#666}
+#intro.run .hl{animation:hl 1.1s .5s cubic-bezier(.7,0,.2,1) forwards}
+@keyframes hl{0%{transform:scaleX(0);opacity:1}55%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1) scaleY(60);opacity:0}}
+#intro.run .em{animation:emIn 1.6s 1.3s cubic-bezier(.3,.7,.2,1) forwards}
+@keyframes emIn{0%{opacity:0;clip-path:inset(0 100% 0 0);filter:blur(18px) brightness(2)}40%{opacity:1}100%{opacity:.92;clip-path:inset(0 0 0 0);filter:blur(0) brightness(1)}}
+#intro.run .q{animation:fadeIn 1s 3.2s forwards}
+@keyframes fadeIn{to{opacity:1}}
+#intro.out{animation:ovOut .9s ease forwards}
+@keyframes ovOut{0%{opacity:1;filter:none}30%{filter:brightness(2.2) contrast(1.6)}100%{opacity:0;visibility:hidden}}
+
+/* lanzamiento: overdive */
+#launch{background:radial-gradient(ellipse at 62% 45%,rgba(120,0,15,.25),rgba(0,0,0,.94) 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s}
+#launch .od{font-family:var(--type);font-size:84px;letter-spacing:22px;color:#fff;position:relative;text-shadow:-3px 0 rgba(255,30,50,.8),3px 0 rgba(60,200,255,.45)}
+#launch .od::before,#launch .od::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;overflow:hidden}
+#launch .od::before{color:var(--red-hi);clip-path:inset(0 0 60% 0);transform:translate(-6px,0);animation:sl 1.6s steps(3) infinite}
+#launch .od::after{color:#8fe6ff;clip-path:inset(62% 0 0 0);transform:translate(6px,0);opacity:.6;animation:sl 1.3s steps(3) infinite reverse}
+@keyframes sl{0%{transform:translate(-6px,0)}33%{transform:translate(4px,1px)}66%{transform:translate(-2px,-1px)}100%{transform:translate(6px,0)}}
+#launch .who{font-family:var(--mono);font-size:14px;letter-spacing:4px;color:#b3b6bb;margin-top:12px}
+#launch .st{font-family:var(--mono);font-size:14px;letter-spacing:2px;color:#e6e4e0;margin-top:46px;min-height:20px}
+#launch .bar{width:520px;height:3px;background:rgba(255,255,255,.12);margin-top:14px;opacity:0;transition:opacity .3s}
+#launch .bar.on{opacity:1}
+#launch .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red-lo),var(--red-hi));box-shadow:0 0 10px var(--red-hi);transition:width .3s}
+#launch .ring{position:absolute;left:50%;top:50%;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;border:1px solid rgba(255,60,80,.5);opacity:0}
+#launch.on .ring{animation:ring 2.2s ease-out infinite}
+#launch.on .ring.b{animation-delay:1.1s}
+@keyframes ring{0%{transform:scale(.3);opacity:.9}100%{transform:scale(3.2);opacity:0}}
+.flash{position:absolute;inset:0;z-index:90;background:#ff1f36;mix-blend-mode:screen;opacity:0;pointer-events:none}
+.flash.go{animation:flash .7s ease-out}
+@keyframes flash{0%{opacity:.85}100%{opacity:0}}
+#stage.dive .bg{transition:transform 1.6s cubic-bezier(.6,0,.3,1),filter 1.6s;transform:scale(1.32) translate(-80px,10px)!important;filter:brightness(.3) saturate(1.6) hue-rotate(-12deg) blur(2px)}
+#stage.dive #ui{transition:opacity .6s,filter .6s;opacity:.0;filter:blur(6px)}
+
+/* salida */
+#outro{background:#000;display:flex;align-items:center;justify-content:center}
+#outro .q{font-family:var(--type);font-size:30px;letter-spacing:6px;color:#e9e6e2;opacity:0}
+#outro .q .r{color:var(--red-hi)}
+#outro.run .q{animation:oq 2.3s ease forwards}
+@keyframes oq{0%{opacity:0;letter-spacing:14px;filter:blur(8px)}30%{opacity:1;letter-spacing:6px;filter:none}75%{opacity:1}100%{opacity:0;filter:blur(4px)}}
+#stage.crt #ui,#stage.crt .bg,#stage.crt .shade{animation:crt .7s cubic-bezier(.7,0,.3,1) forwards}
+@keyframes crt{0%{transform:none;filter:none}45%{transform:scaleY(.008) scaleX(1);filter:brightness(4)}100%{transform:scaleY(.004) scaleX(0);filter:brightness(8)}}
+#ui{position:absolute;inset:0}
+#stage.instant *,#stage.instant{transition:none!important}
+#ui.back{animation:fadeIn2 .35s ease-out both}
+#ui.enter #nav .ni{animation:slideIn .6s cubic-bezier(.2,.8,.2,1) both}
+#ui.enter #nav .ni:nth-child(2){animation-delay:.07s}#ui.enter #nav .ni:nth-child(3){animation-delay:.14s}#ui.enter #nav .ni:nth-child(4){animation-delay:.21s}#ui.enter #nav .ni:nth-child(5){animation-delay:.28s}
+@keyframes slideIn{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+#ui.enter #top,#ui.enter #foot{animation:fadeIn2 .8s both}
+@keyframes fadeIn2{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<div id="drag"></div>
+<div id="stage">
+  <div class="bg"></div>
+  <div class="shade"></div>
+  <canvas id="ash"></canvas>
+  <div class="scan"></div>
+  <div class="grain"></div>
+
+  <div id="ui">
+    <div class="frame"></div>
+    <div id="top">
+      <div class="brand">DIONIXU'S <b>/</b> LAUNCHER</div>
+      <div class="sp"></div>
+      <div id="dev"><i></i><span id="devTxt">MANDO</span></div>
+      <button class="wb" data-nav data-act="min" title=""><svg viewBox="0 0 16 16"><path d="M3 8h10"/></svg></button>
+      <button class="wb" data-nav data-act="full" title=""><svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9"/></svg></button>
+      <button class="wb x" data-nav data-act="quit" title=""><svg viewBox="0 0 16 16"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button>
+    </div>
+    <div id="sub">+ CTI / ARCHIVE SYSTEM<br>&nbsp;&nbsp;// THE 3RD BIRTHDAY · PSP</div>
+
+    <nav id="nav">
+      <button class="ni on" data-nav data-page="home"><svg viewBox="0 0 24 24"><path d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3z"/></svg><span data-i="nHome"></span></button>
+      <button class="ni vsel" data-nav data-page="play"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 7a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 1.6a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z" fill-rule="evenodd"/></svg>
+        <span class="vt"><span data-i="nVer"></span><small><i data-vc="-1">‹</i><b id="navVer"></b><i data-vc="1">›</i></small></span></button>
+      <button class="ni" data-nav data-page="settings"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.3 7.3 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.3 7.3 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.3 7.3 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.3 7.3 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg><span data-i="nSet"></span></button>
+      <button class="ni" data-nav data-page="extras"><svg viewBox="0 0 24 24"><path d="M3 5h7l2 2.5h9V19H3z"/></svg><span data-i="nExtra"></span></button>
+      <button class="ni" data-nav data-act="quit"><svg viewBox="0 0 24 24"><path d="M11 3h2v9h-2zM7.05 6.05l1.41 1.41a6 6 0 1 0 7.08 0l1.41-1.41A8 8 0 1 1 7.05 6.05z"/></svg><span data-i="nQuit"></span></button>
+    </nav>
+
+    <!-- INICIO -->
+    <section class="page on" id="p-home">
+      <div id="title" class="rise">
+        <img class="em" src="assets/emblem.png" alt="">
+        <div class="logo" id="logo">[The <span class="r">3</span>rd Birthday]<small>™</small></div>
+        <div class="ed">PC LAUNCHER</div>
+        <div class="tag">The end is only the beginning.</div>
+      </div>
+      <button id="playBig" class="rise d2" data-nav data-act="launch"><span class="corner a"></span><span class="corner b"></span><svg viewBox="0 0 24 24"><path d="M6 4v16l14-8z"/></svg><span data-i="play"></span></button>
+      <div id="status" class="rise d3">
+        <div class="box"><div class="k" data-i="stK"></div><div class="v" id="stV"></div></div>
+        <div class="sep"></div>
+        <div class="chip ok" id="stChip"><i></i><span>READY</span></div>
+      </div>
+      <div id="agent" class="rise d4">
+        <div class="n">Aya Brea</div><div class="s">CTI Special Operations</div>
+        <div class="bc" id="bc"></div>
+        <div class="t"><span data-i="ptShort"></span> <b id="agT">00:00</b></div>
+      </div>
+      <div class="cards">
+        <div class="card rise d4">
+          <h3 data-i="cLast"></h3>
+          <div class="row"><div class="thumb" style="background-image:url(assets/th_city.jpg)"></div>
+            <div><div class="mono" id="lsK"></div><div class="tt" id="lsT"></div><div class="mono" id="lsD"></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- JUGAR -->
+    <section class="page" id="p-play">
+      <div class="panel rise">
+        <div class="ph"><h2 id="verH">[<span class="r">V</span>ERSIÓN]</h2><div class="code">CTI // SELECT ARCHIVE</div></div>
+        <div class="vers" id="vers"></div>
+        <div class="opt" data-nav data-opt="iconSet" style="margin-top:22px;border-top:1px solid rgba(255,255,255,.05)"></div>
+        <div class="playbar">
+          <div class="info" id="pInfo"></div>
+          <button class="btnline red" data-nav data-act="launch" style="height:54px;padding:0 40px;font-size:18px;letter-spacing:5px"><svg viewBox="0 0 16 16" style="fill:#fff;stroke:none;width:14px"><path d="M3 2v12l11-6z"/></svg><span data-i="play"></span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIGURACIÓN -->
+    <section class="page" id="p-settings">
+      <div class="panel rise">
+        <div class="ph"><h2>[<span class="r">C</span>ONFIGURACIÓN]</h2><div class="code">CTI // SYSTEM PARAMETERS</div></div>
+        <div class="tabs" id="setTabs"></div>
+        <div class="scroll" id="setBody"></div>
+      </div>
+    </section>
+
+    <!-- EXTRAS -->
+    <section class="page" id="p-extras">
+      <div class="panel rise">
+        <div class="ph"><h2>[<span class="r">E</span>XTRAS]</h2><div class="code">CTI // ARCHIVE</div></div>
+        <div class="tabs" id="xTabs"></div>
+        <div class="scroll" id="xBody"></div>
+      </div>
+    </section>
+
+    <div id="foot">
+      <span>DIONIXU'S LAUNCHER</span><span class="ln"></span>
+      <span class="sp"></span>
+      <div id="hints"></div>
+      <span style="margin-left:26px">THE 3RD BIRTHDAY // PSP // FAN PROJECT</span>
+    </div>
+  </div>
+
+  <div id="note"></div>
+
+  <div class="dlg" id="dlgQuit"><div class="bx">
+    <h4 data-i="qT"></h4><p data-i="qD"></p>
+    <div class="bt"><button class="btnline" data-nav data-act="quitYes"><span data-i="qY"></span></button><button class="btnline" data-nav data-act="quitNo"><span data-i="qN"></span></button></div>
+  </div></div>
+  <div class="lbx" id="lbx"><img id="lbxImg" alt=""></div>
+
+  <!-- INTRO -->
+  <div class="ov" id="intro">
+    <canvas id="noise"></canvas>
+    <div class="log" id="ilog"></div>
+    <div class="hl"></div>
+    <div class="mid">
+      <img class="em" src="assets/emblem.png" alt="">
+      <div class="logo" id="ilogo"></div>
+      <div class="q">THE END IS ONLY THE BEGINNING</div>
+    </div>
+    <div class="skip" data-i="skip"></div>
+  </div>
+
+  <!-- LANZAMIENTO -->
+  <div class="ov" id="launch">
+    <div class="ring"></div><div class="ring b"></div>
+    <div class="od" data-t="OVERDIVE">OVERDIVE</div>
+    <div class="who" id="lWho"></div>
+    <div class="st" id="lSt"></div>
+    <div class="bar" id="lBar"><i id="lFill"></i></div>
+  </div>
+
+  <!-- SALIDA -->
+  <div class="ov" id="outro"><div class="q">The end is only the <span class="r">beginning</span>.</div></div>
+  <div class="flash" id="flash"></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
+  const stage = $('#stage');
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* ───── escala del lienzo 1600×900 ───── */
+  const fit = () => document.documentElement.style.setProperty('--s', Math.min(innerWidth / 1600, innerHeight / 900));
+  addEventListener('resize', fit); fit();
+
+  /* ───── puente con Electron ───── */
+  const host = window.ptHost || null;
+  const post = (cmd, extra) => { if (host) host.postMessage(JSON.stringify(Object.assign({ cmd }, extra || {}))); };
+
+  /* ───── configuración (las claves coinciden con main.js) ───── */
+  const DEF = { version: 'es', iconSet: 'xbox',
+    backend: 'vulkan', res: '1080', mode: 'full', vsync: 'on', aa: '1', af: '16', fps: 'off', dumpTex: 'off', texUp: 'xbrz', post: 'off', hdTex: 'on',
+    gvol: '100', music: 'on', mvol: 50, sfx: 'on',
+    autoControls: 'on', kbCam: 'mouse', sens: 50, invert: 'off', padInvert: 'off', freecam: 'on', camInvX: 'off', kbBinds: {}, padBinds: {},
+    ui: 'es', intro: 'on', anim: 'on', ash: 'on', launcherFull: 'on' };
+  let cfg = Object.assign({}, DEF);
+  try { const s = localStorage.getItem('t3b_cfg'); if (s) Object.assign(cfg, JSON.parse(s)); } catch (e) {}
+  let H = { config: {}, ppssppOk: true, isos: [], versions: { es: false, esReady: false, en: false, jp: false, xdelta: false, esSource: null }, mods: [], saves: { count: 0, last: 0 }, shots: [], patchFrom: [] };
+  let scanning = null, firstState = false;
+  const save = () => { try { localStorage.setItem('t3b_cfg', JSON.stringify(cfg)); } catch (e) {} post('save', { config: cfg }); };
+
+  /* ───── textos ───── */
+  const T = {
+    es: { nHome: 'Inicio', nPlay: 'Jugar', nVer: 'Versión', nSet: 'Configuración', nExtra: 'Extras', nQuit: 'Salir', play: 'JUGAR',
+      stK: 'ESTADO DEL JUEGO', ptShort: 'T. JUEGO', cEd: 'Edición', cLast: 'Última partida', cExtra: 'Extras', cont: 'Continuar',
+      xMods: 'Mods', xGal: 'Galería', xCred: 'Créditos', gIcons: 'ICONOS DE BOTONES EN EL JUEGO',
+      qT: '¿SALIR?', qD: 'Se cerrará el launcher de The 3rd Birthday.', qY: 'SALIR', qN: 'CANCELAR', skip: 'CUALQUIER TECLA PARA SALTAR',
+      min: 'Minimizar', full: 'Pantalla completa (F11)', close: 'Cerrar',
+      kb: 'TECLADO', pad: 'MANDO', ok: 'Aceptar', back: 'Volver', tabs: 'Pestañas', change: 'Cambiar',
+      vEs: 'Español', vEsS: 'voces japonesas', vEsD: 'Textos en español y doblaje japonés original (UNDUB). Traducción de Traducciones del Tío Victor.',
+      vEn: 'English', vEnS: 'original', vEnD: 'Versión original en inglés, sin modificar (americana o europea).',
+      vJp: '日本語', vJpS: 'original', vJpD: 'Versión japonesa original (ULJM-05798).',
+      rec: 'RECOMENDADA', avail: 'DISPONIBLE', willPatch: 'SE CREARÁ AL JUGAR', missing: 'FALTA LA ISO',
+      stReady: 'Listo para iniciar', stScan: 'Identificando tus ISOs…', stNoPP: 'Falta PPSSPP', stNoIso: 'Falta la ISO de esta edición',
+      stPatch: 'Se creará el español al jugar', chReady: 'READY', chScan: 'SCAN', chMiss: 'MISSING', chPatch: 'PATCH', chErr: 'ERROR',
+      lastNone: 'Aún no has jugado', lastSes: 'SESIONES', lastDate: 'ÚLTIMA SESIÓN', saves: 'partidas guardadas', savesS: 'GUARDADAS', playtime: 'Tiempo de juego',
+      pInfoEs: (s) => s ? `La primera vez se generará la versión en español a partir de tu ISO <b>${esc(s)}</b> (aprox. 1 min). Tu ISO original no se modifica.` : 'Versión en español lista.',
+      pInfoMiss: 'Pon tu ISO americana o europea original en la carpeta <b>juego</b> y pulsa ACTUALIZAR en Extras.',
+      launchWho: 'AYA BREA // CTI', lPrep: 'Preparando PPSSPP…', lApply: (f) => `Aplicando el parche al español desde tu ISO ${f}…`, lVerify: 'Verificando la ISO en español…',
+      lOpen: 'Abriendo el juego…', lScan: (f) => `Identificando ${f}…`,
+      tGfx: 'Gráficos', tSnd: 'Sonido', tCtl: 'Controles', tLau: 'Launcher', tMods: 'Mods', tGal: 'Galería', tCred: 'Créditos',
+      gGfx: 'IMAGEN', gQual: 'CALIDAD', gDev: 'HERRAMIENTAS', gSnd: 'JUEGO', gLm: 'LAUNCHER', gIn: 'DISPOSITIVOS', gCam: 'CÁMARA', gMap: 'ASIGNACIÓN DE BOTONES', gL: 'GENERAL',
+      o: {
+        backend: ['Motor gráfico', 'Vulkan es el más rápido; DirectX 11 si tienes problemas'],
+        res: ['Resolución interna', 'Resolución a la que se dibuja el juego'],
+        mode: ['Pantalla', 'Modo de la ventana del juego'],
+        vsync: ['Sincronización vertical', 'Evita cortes de imagen'],
+        aa: ['Antialiasing', 'Suaviza los bordes (MSAA)'],
+        af: ['Filtrado anisotrópico', 'Nitidez de texturas lejanas'],
+        fps: ['Contador de FPS', 'Muestra los cuadros por segundo'],
+        dumpTex: ['Volcar texturas', 'Guarda las texturas del juego para crear mods'],
+        texUp: ['Mejora de texturas', 'Reescala las texturas del juego para quitar el pixelado'],
+        post: ['Filtro de imagen', 'Retoque final de la imagen'],
+        hdTex: ['Texto, HUD y botones en HD', 'Fuente y HUD redibujados en alta resolución'],
+        gvol: ['Volumen del juego', 'Se puede cambiar en vivo desde la pausa (ESC / L3+R3)'],
+        music: ['Música', 'Música del menú del launcher'], mvol: ['Volumen de la música', 'Solo en el launcher'],
+        sfx: ['Efectos', 'Sonidos del menú'],
+        iconSet: ['Iconos de botones', 'Botones que muestra el juego'],
+        autoControls: ['Controles automáticos', 'No = conservar lo que configures a mano en PPSSPP'],
+        kbCam: ['Cámara con teclado', 'Ratón o teclas para mover la cámara'],
+        sens: ['Sensibilidad de la cámara', 'Velocidad con el ratón y el stick derecho'],
+        invert: ['Invertir Y (ratón)', 'Eje vertical del ratón'], padInvert: ['Invertir Y (stick derecho)', 'Eje vertical del stick derecho'],
+        freecam: ['Cámara libre', 'Stick derecho o ratón · R3 la centra · solo versión Español (por ahora)'],
+        camInvX: ['Invertir X (cámara)', 'Sentido del giro horizontal'],
+        reset: ['Restablecer controles', 'Vuelve a la asignación por defecto'],
+        ui: ['Idioma', 'Idioma de este launcher'], intro: ['Intro', 'Animación al abrir el launcher'],
+        anim: ['Animaciones', 'Movimiento del fondo y efectos'], ash: ['Ceniza', 'Partículas flotando en el fondo'],
+        launcherFull: ['Launcher en pantalla completa', 'F11 cambia en cualquier momento']
+      },
+      v: { vulkan: 'VULKAN', dx11: 'DIRECTX 11', opengl: 'OPENGL', '720': '720p (3×)', '1080': '1080p (4×)', '1440': '1440p (6×)', '2160': '4K (8×)',
+        full: 'COMPLETA', border: 'SIN BORDES', window: 'VENTANA', on: 'SÍ', off: 'NO', '1': 'NO', '2': '2×', '4': '4×', '8': '8×', '16': '16×',
+        auto: 'AUTOMÁTICO', xbox: 'XBOX', kb: 'TECLADO', psp: 'PSP ORIGINAL', mouse: 'RATÓN', keys: 'TECLAS', es: 'ESPAÑOL', en: 'ENGLISH',
+        xbrz: '4xBRZ · NÍTIDO', mmpx: 'MMPX · PIXEL ART', spline: 'SUAVE', sharpen: 'NITIDEZ', fxaa: 'FXAA', natural: 'COLOR NATURAL' },
+      soon: 'EN DESARROLLO', doIt: 'APLICAR',
+      bAct: 'ACCIÓN', bKb: 'TECLADO / RATÓN', bPad: 'MANDO XBOX', press: 'PULSA UNA TECLA…', pressPad: 'PULSA UN BOTÓN…', fixed: 'STICK IZQ.', fixedR: 'STICK DER.',
+      act: { ls_up: 'Avanzar', ls_down: 'Retroceder', ls_left: 'Izquierda', ls_right: 'Derecha', rs_up: 'Cámara arriba', rs_down: 'Cámara abajo', rs_left: 'Cámara izquierda', rs_right: 'Cámara derecha',
+        cross: 'Cruz', circle: 'Círculo', square: 'Cuadrado', triangle: 'Triángulo · Overdive', l: 'L · Apuntar', r: 'R · Disparar', start: 'Start · Menú', select: 'Select', du: 'Cruceta ↑', dd: 'Cruceta ↓', dl: 'Cruceta ←', dr: 'Cruceta →' },
+      reserved: (k) => `${k} está reservada (ESC pausa · F9 captura · F12 menú de PPSSPP)`, swapped: (k) => `Intercambiado con ${k}`, ctlReset: 'Controles restablecidos',
+      noMods: 'No hay mods instalados. Crea una carpeta dentro de <code>mods\\</code> con un <code>mod.json</code> y cualquiera de: <code>textures\\</code> (texturas de PPSSPP), <code>cheats.ini</code> (trucos CWCheat), <code>plugin\\</code> (plugin de PPSSPP) o <code>ppsspp.ini</code> (ajustes). Se aplican solos al iniciar.',
+      noShots: 'Aún no hay capturas. Pulsa <code>F9</code> durante el juego para guardar una.',
+      openMods: 'ABRIR CARPETA', openShots: 'ABRIR CARPETA', rescan: 'ACTUALIZAR', modOn: 'Mod activado', modOff: 'Mod desactivado',
+      maqPlay: 'Maqueta: aquí se abriría el juego', err: 'Error',
+      parts: { texturas: 'TEXTURAS', trucos: 'TRUCOS', plugin: 'PLUGIN', ajustes: 'AJUSTES' }
+    },
+    en: { nHome: 'Home', nPlay: 'Play', nVer: 'Version', nSet: 'Settings', nExtra: 'Extras', nQuit: 'Quit', play: 'PLAY',
+      stK: 'GAME STATUS', ptShort: 'PLAY TIME', cEd: 'Edition', cLast: 'Last session', cExtra: 'Extras', cont: 'Continue',
+      xMods: 'Mods', xGal: 'Gallery', xCred: 'Credits', gIcons: 'IN-GAME BUTTON PROMPTS',
+      qT: 'QUIT?', qD: 'The 3rd Birthday launcher will close.', qY: 'QUIT', qN: 'CANCEL', skip: 'PRESS ANY KEY TO SKIP',
+      min: 'Minimize', full: 'Full screen (F11)', close: 'Close',
+      kb: 'KEYBOARD', pad: 'GAMEPAD', ok: 'Confirm', back: 'Back', tabs: 'Tabs', change: 'Change',
+      vEs: 'Español', vEsS: 'japanese voices', vEsD: 'Spanish text with the original Japanese voices (UNDUB). Translation by Traducciones del Tío Victor.',
+      vEn: 'English', vEnS: 'original', vEnD: 'Original English version, unmodified (USA or Europe).',
+      vJp: '日本語', vJpS: 'original', vJpD: 'Original Japanese version (ULJM-05798).',
+      rec: 'RECOMMENDED', avail: 'AVAILABLE', willPatch: 'BUILT ON FIRST PLAY', missing: 'ISO MISSING',
+      stReady: 'Ready to start', stScan: 'Identifying your ISOs…', stNoPP: 'PPSSPP is missing', stNoIso: 'This edition’s ISO is missing',
+      stPatch: 'Spanish will be built on first play', chReady: 'READY', chScan: 'SCAN', chMiss: 'MISSING', chPatch: 'PATCH', chErr: 'ERROR',
+      lastNone: 'You haven’t played yet', lastSes: 'SESSIONS', lastDate: 'LAST SESSION', saves: 'saved games', savesS: 'SAVES', playtime: 'Play time',
+      pInfoEs: (s) => s ? `The first time, the Spanish version will be built from your <b>${esc(s)}</b> ISO (about 1 min). Your original ISO is not modified.` : 'Spanish version ready.',
+      pInfoMiss: 'Put your original USA or Europe ISO in the <b>juego</b> folder and press REFRESH in Extras.',
+      launchWho: 'AYA BREA // CTI', lPrep: 'Preparing PPSSPP…', lApply: (f) => `Applying the Spanish patch from your ${f} ISO…`, lVerify: 'Verifying the Spanish ISO…',
+      lOpen: 'Opening the game…', lScan: (f) => `Identifying ${f}…`,
+      tGfx: 'Graphics', tSnd: 'Sound', tCtl: 'Controls', tLau: 'Launcher', tMods: 'Mods', tGal: 'Gallery', tCred: 'Credits',
+      gGfx: 'PICTURE', gQual: 'QUALITY', gDev: 'TOOLS', gSnd: 'GAME', gLm: 'LAUNCHER', gIn: 'DEVICES', gCam: 'CAMERA', gMap: 'BUTTON MAPPING', gL: 'GENERAL',
+      o: {
+        backend: ['Graphics backend', 'Vulkan is fastest; DirectX 11 if you have issues'],
+        res: ['Internal resolution', 'Resolution the game is rendered at'],
+        mode: ['Display', 'Game window mode'],
+        vsync: ['V-Sync', 'Prevents screen tearing'],
+        aa: ['Anti-aliasing', 'Smooths edges (MSAA)'],
+        af: ['Anisotropic filtering', 'Sharpness of distant textures'],
+        fps: ['FPS counter', 'Shows frames per second'],
+        dumpTex: ['Dump textures', 'Saves the game textures to make mods'],
+        texUp: ['Texture enhancement', 'Upscales the game textures to remove pixelation'],
+        post: ['Image filter', 'Final touch applied to the picture'],
+        hdTex: ['HD text, HUD and buttons', 'Font and HUD redrawn in high resolution'],
+        gvol: ['Game volume', 'Can be changed live from the pause menu (ESC / L3+R3)'],
+        music: ['Music', 'Launcher menu music'], mvol: ['Music volume', 'Launcher only'],
+        sfx: ['Effects', 'Menu sounds'],
+        iconSet: ['Button prompts', 'Buttons shown in game'],
+        autoControls: ['Automatic controls', 'No = keep what you set up by hand in PPSSPP'],
+        kbCam: ['Keyboard camera', 'Mouse or keys to move the camera'],
+        sens: ['Camera sensitivity', 'Speed with the mouse and right stick'],
+        invert: ['Invert Y (mouse)', 'Mouse vertical axis'], padInvert: ['Invert Y (right stick)', 'Right stick vertical axis'],
+        freecam: ['Free camera', 'Right stick or mouse · R3 recenters · Spanish version only (for now)'],
+        camInvX: ['Invert X (camera)', 'Horizontal turn direction'],
+        reset: ['Reset controls', 'Back to the default mapping'],
+        ui: ['Language', 'Language of this launcher'], intro: ['Intro', 'Animation when the launcher opens'],
+        anim: ['Animations', 'Background motion and effects'], ash: ['Ash', 'Particles floating in the background'],
+        launcherFull: ['Full-screen launcher', 'F11 toggles it at any time']
+      },
+      v: { vulkan: 'VULKAN', dx11: 'DIRECTX 11', opengl: 'OPENGL', '720': '720p (3×)', '1080': '1080p (4×)', '1440': '1440p (6×)', '2160': '4K (8×)',
+        full: 'FULL', border: 'BORDERLESS', window: 'WINDOW', on: 'YES', off: 'NO', '1': 'OFF', '2': '2×', '4': '4×', '8': '8×', '16': '16×',
+        auto: 'AUTOMATIC', xbox: 'XBOX', kb: 'KEYBOARD', psp: 'ORIGINAL PSP', mouse: 'MOUSE', keys: 'KEYS', es: 'ESPAÑOL', en: 'ENGLISH',
+        xbrz: '4xBRZ · SHARP', mmpx: 'MMPX · PIXEL ART', spline: 'SMOOTH', sharpen: 'SHARPEN', fxaa: 'FXAA', natural: 'NATURAL COLOR' },
+      soon: 'IN DEVELOPMENT', doIt: 'APPLY',
+      bAct: 'ACTION', bKb: 'KEYBOARD / MOUSE', bPad: 'XBOX GAMEPAD', press: 'PRESS A KEY…', pressPad: 'PRESS A BUTTON…', fixed: 'LEFT STICK', fixedR: 'RIGHT STICK',
+      act: { ls_up: 'Forward', ls_down: 'Back', ls_left: 'Left', ls_right: 'Right', rs_up: 'Camera up', rs_down: 'Camera down', rs_left: 'Camera left', rs_right: 'Camera right',
+        cross: 'Cross', circle: 'Circle', square: 'Square', triangle: 'Triangle · Overdive', l: 'L · Aim', r: 'R · Shoot', start: 'Start · Menu', select: 'Select', du: 'D-pad ↑', dd: 'D-pad ↓', dl: 'D-pad ←', dr: 'D-pad →' },
+      reserved: (k) => `${k} is reserved (ESC pause · F9 screenshot · F12 PPSSPP menu)`, swapped: (k) => `Swapped with ${k}`, ctlReset: 'Controls reset',
+      noMods: 'No mods installed. Create a folder inside <code>mods\\</code> with a <code>mod.json</code> and any of: <code>textures\\</code> (PPSSPP textures), <code>cheats.ini</code> (CWCheat codes), <code>plugin\\</code> (PPSSPP plugin) or <code>ppsspp.ini</code> (settings). They are applied when the game starts.',
+      noShots: 'No screenshots yet. Press <code>F9</code> while playing to save one.',
+      openMods: 'OPEN FOLDER', openShots: 'OPEN FOLDER', rescan: 'REFRESH', modOn: 'Mod enabled', modOff: 'Mod disabled',
+      maqPlay: 'Preview: the game would open here', err: 'Error',
+      parts: { texturas: 'TEXTURES', trucos: 'CHEATS', plugin: 'PLUGIN', ajustes: 'SETTINGS' }
+    }
+  };
+  let L = T[cfg.ui] || T.es;
+  const applyI18n = () => {
+    L = T[cfg.ui] || T.es; document.documentElement.lang = cfg.ui;
+    $('#verH').innerHTML = cfg.ui === 'en' ? '[<span class="r">V</span>ERSION]' : '[<span class="r">V</span>ERSIÓN]';
+    $$('[data-i]').forEach((el) => { const v = L[el.dataset.i]; if (typeof v === 'string') el.textContent = v; });
+    $('[data-act="min"]').title = L.min; $('[data-act="full"]').title = L.full; $('#top [data-act="quit"]').title = L.close;
+  };
+
+  /* ───── sonido ───── */
+  const sfx = {}; ['move', 'ok', 'back', 'open', 'start', 'tick', 'page', 'boo'].forEach((n) => { sfx[n] = new Audio('assets/sfx/' + n + '.ogg'); sfx[n].volume = .45; });
+  const play = (n) => { if (cfg.sfx === 'off' || !sfx[n]) return; try { const a = sfx[n].cloneNode(); a.volume = n === 'move' ? .3 : .45; a.play().catch(() => {}); } catch (e) {} };
+  // Música: dos pistas que se cruzan en el bucle (sin corte brusco). master = volumen general con fundidos.
+  const music = (() => {
+    const A = [new Audio('assets/music.ogg'), new Audio('assets/music.ogg')];
+    A.forEach((a) => { a.preload = 'auto'; a.volume = 0; });
+    let cur = 0, xf = null, playing = false, master = 0, target = 0, fadeFrom = 0, fadeT0 = 0, fadeMs = 600;
+    const XF = 4.5;   // segundos de cruce al final del tema
+    const tick = () => {
+      const now = performance.now();
+      const k = Math.min(1, (now - fadeT0) / fadeMs); master = fadeFrom + (target - fadeFrom) * k;
+      if (playing && master <= 0.0005 && target === 0 && k >= 1) { A.forEach((a) => a.pause()); playing = false; }
+      const a = A[cur], b = A[1 - cur];
+      if (playing && !xf && a.duration && a.currentTime > a.duration - XF) { xf = now; b.currentTime = 0; b.play().catch(() => {}); }
+      let va = 1, vb = 0;
+      if (xf) { const q = Math.min(1, (now - xf) / (XF * 1000)); va = Math.cos(q * Math.PI / 2); vb = Math.sin(q * Math.PI / 2); if (q >= 1) { a.pause(); cur = 1 - cur; xf = null; va = 1; vb = 0; } }
+      try { A[cur].volume = Math.max(0, Math.min(1, master * (xf ? va : 1))); if (xf) A[1 - cur].volume = Math.max(0, Math.min(1, master * vb)); } catch (e) {}
+    };
+    setInterval(tick, 50);
+    return {
+      to(v, ms) { fadeFrom = master; target = v; fadeT0 = performance.now(); fadeMs = ms || 600; if (v > 0 && !playing) { playing = true; A[cur].play().catch(() => {}); } },
+      set(v) { fadeFrom = target = master = v; fadeT0 = 0; if (v > 0 && !playing) { playing = true; A[cur].play().catch(() => {}); } }
+    };
+  })();
+  const musicTo = (v, ms) => music.to(v, ms);
+  // curva perceptiva y tope bajo: 100% del control = 0.35 de volumen real
+  const musicVol = () => (cfg.music === 'on' ? Math.pow(Math.max(0, Math.min(100, +cfg.mvol || 0)) / 100, 2) * .35 : 0);
+  const musicStart = () => { if (cfg.music === 'on') musicTo(musicVol(), 2200); };
+
+  /* ───── aviso ───── */
+  let noteT = null;
+  const note = (txt, err) => { const n = $('#note'); n.textContent = txt; n.className = 'on' + (err ? ' err' : ''); clearTimeout(noteT); noteT = setTimeout(() => (n.className = err ? 'err' : ''), err ? 6500 : 2600); if (err) play('boo'); };
+
+  /* ───── dispositivo ───── */
+  let dev = cfg.lastDevice === 'pad' ? 'pad' : 'kb';
+  const setDev = (d) => {
+    if (d === dev && document.body.classList.contains(d)) return;
+    dev = d; document.body.classList.toggle('pad', d === 'pad'); document.body.classList.toggle('kb', d === 'kb');
+    $('#devTxt').textContent = d === 'pad' ? L.pad : L.kb; post('device', { value: d }); hints(); if (curPage === 'settings' && setTab === 'ctl') renderSettings();
+  };
+  const G = (n) => `<img src="assets/glifos/${n}.png" alt="">`;
+  const hints = () => {
+    const tabs = curPage === 'settings' || curPage === 'extras';
+    $('#hints').innerHTML = dev === 'pad'
+      ? `<span>${G('A')}${L.ok}</span><span>${G('B')}${L.back}</span>${tabs ? `<span>${G('LB')}${G('RB')}${L.tabs}</span>` : ''}`
+      : `<span><kbd>ENTER</kbd>${L.ok}</span><span><kbd>ESC</kbd>${L.back}</span>${tabs ? `<span><kbd>Q</kbd><kbd>E</kbd>${L.tabs}</span>` : ''}`;
+  };
+
+  /* ───── utilidades de estado ───── */
+  const fmtTime = (s) => { s = parseInt(s || 0, 10) || 0; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; };
+  const fmtTimeLong = (s) => { s = parseInt(s || 0, 10) || 0; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return h ? `${h} h ${m} min` : `${m} min`; };
+  const fmtDate = (t) => { if (!t) return '—'; const d = new Date(t); const p = (n) => (n < 10 ? '0' : '') + n; return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())}  ${p(d.getHours())}:${p(d.getMinutes())}`; };
+  const vInfo = (v) => {
+    const V = H.versions || {};
+    if (v === 'es') return V.esReady ? 'ready' : V.es ? 'patch' : 'missing';
+    if (v === 'en') return V.en ? 'ready' : 'missing';
+    return V.jp ? 'ready' : 'missing';
+  };
+  const vName = (v) => ({ es: L.vEs + ' · ' + L.vEsS, en: L.vEn + ' · ' + L.vEnS, jp: L.vJp + ' · ' + L.vJpS })[v];
+
+  /* ───── INICIO ───── */
+  const bc = $('#bc'); for (let i = 0; i < 46; i++) { const s = document.createElement('span'); s.style.width = (1 + ((i * 7919) % 3)) + 'px'; s.style.opacity = .5 + ((i * 31) % 5) / 10; bc.appendChild(s); }
+  const renderHome = () => {
+    const st = $('#stV'), ch = $('#stChip'), info = vInfo(cfg.version);
+    let txt, cls, lab;
+    if (scanning) { txt = L.stScan + (scanning.pct != null ? ' ' + scanning.pct + '%' : ''); cls = 'warn busy'; lab = L.chScan; }
+    else if (!H.ppssppOk) { txt = L.stNoPP; cls = 'bad'; lab = L.chErr; }
+    else if (info === 'missing') { txt = L.stNoIso; cls = 'bad'; lab = L.chMiss; }
+    else if (info === 'patch') { txt = L.stPatch; cls = 'warn'; lab = L.chPatch; }
+    else { txt = L.stReady; cls = 'ok'; lab = L.chReady; }
+    st.textContent = txt; st.title = txt; ch.className = 'chip ' + cls; ch.querySelector('span').textContent = lab;
+    $('#agT').textContent = fmtTime(H.config.playtime || cfg.playtime);
+    $('#navVer').textContent = ({ es: 'ESPAÑOL · JP', en: 'ENGLISH', jp: '日本語' })[cfg.version];
+    // última partida
+    const c = H.config || {}, ses = parseInt(c.sessions || 0, 10) || 0;
+    if (c.lastPlayed || ses) {
+      $('#lsK').textContent = L.lastSes + ' ' + ses + ' · ' + L.savesS + ' ' + (H.saves.count || 0);
+      $('#lsT').textContent = L.playtime + ': ' + fmtTimeLong(c.playtime);
+      $('#lsD').textContent = fmtDate(c.lastPlayed);
+    } else {
+      $('#lsK').textContent = (H.saves.count || 0) + ' ' + L.saves;
+      $('#lsT').textContent = L.lastNone;
+      $('#lsD').textContent = H.saves.last ? fmtDate(H.saves.last) : '—';
+    }
+  };
+
+  /* ───── JUGAR ───── */
+  const renderPlay = () => {
+    const box = $('#vers');
+    const V = [['es', 'th_aya.jpg', L.vEs, L.vEsS, L.vEsD, true], ['en', 'th_mods.jpg', L.vEn, L.vEnS, L.vEnD], ['jp', 'pic1_jp.jpg', L.vJp, L.vJpS, L.vJpD]];
+    box.innerHTML = V.map(([id, img, nm, s, d, rec]) => {
+      const inf = vInfo(id), chip = inf === 'ready' ? ['ok', L.avail] : inf === 'patch' ? ['warn', L.willPatch] : ['bad', L.missing];
+      return `<button class="ver${cfg.version === id ? ' sel' : ''}${inf === 'missing' ? ' off' : ''}" data-nav data-ver="${id}">
+        <div class="im" style="background-image:url(assets/${img})"></div>${rec ? `<span class="tag">${L.rec}</span>` : ''}<span class="ck"></span>
+        <div class="bd"><div class="nm">${esc(nm)} <span style="font-weight:400;color:#8d9197;font-size:14px;letter-spacing:1px">· ${esc(s)}</span></div><div class="ds">${esc(d)}</div>
+        <div class="chip ${chip[0]}" style="display:inline-flex"><i></i><span>${chip[1]}</span></div></div></button>`;
+    }).join('');
+    const inf = vInfo(cfg.version);
+    $('#pInfo').innerHTML = cfg.version === 'es' ? (inf === 'missing' ? L.pInfoMiss : L.pInfoEs(inf === 'patch' ? H.versions.esSource : null))
+      : inf === 'missing' ? (cfg.version === 'jp' ? 'ULJM-05798 · ' + L.missing : L.pInfoMiss) : esc(vName(cfg.version)) + ' · ' + L.avail;
+    renderOpt($('#p-play [data-opt="iconSet"]'));
+  };
+
+  /* ───── opciones ───── */
+  const OPTS = {
+    backend: ['vulkan', 'dx11', 'opengl'], res: ['720', '1080', '1440', '2160'], mode: ['full', 'border', 'window'], vsync: ['on', 'off'],
+    aa: ['1', '2', '4', '8'], af: ['1', '4', '16'], fps: ['off', 'on'], dumpTex: ['off', 'on'], texUp: ['xbrz', 'mmpx', 'spline', 'off'], post: ['off', 'sharpen', 'fxaa', 'natural'], hdTex: ['on', 'off'], music: ['on', 'off'], sfx: ['on', 'off'],
+    iconSet: ['xbox', 'kb'], autoControls: ['on', 'off'], kbCam: ['mouse', 'keys'], invert: ['off', 'on'], padInvert: ['off', 'on'], freecam: ['on', 'off'], camInvX: ['off', 'on'],
+    ui: ['es', 'en'], intro: ['on', 'off'], anim: ['on', 'off'], ash: ['on', 'off'], launcherFull: ['on', 'off']
+  };
+  const SLIDERS = { gvol: [0, 100, 5, '%'], mvol: [0, 100, 5, '%'], sens: [0, 100, 5, ''] };
+  const optRow = (k, extraAttr) => `<div class="opt" data-nav data-opt="${k}"${extraAttr || ''}></div>`;
+  const renderOpt = (el) => {
+    const k = el.dataset.opt, [t, d] = L.o[k] || [k, ''];
+    let ctl;
+    if (SLIDERS[k]) { const [a, b, , u] = SLIDERS[k], v = +cfg[k], p = (v - a) / (b - a) * 100; ctl = `<div class="sld"><div class="tr"><div class="fi" style="width:${p}%"></div><div class="kn" style="left:${p}%"></div></div><div class="nv">${v}${u}</div></div>`; }
+    else if (OPTS[k]) { const vs = OPTS[k], i = Math.max(0, vs.indexOf(String(cfg[k])));
+      ctl = `<div class="cyc"><span class="a" data-d="-1">◀</span><div><div class="v">${esc(L.v[vs[i]] || vs[i])}</div><div class="pips">${vs.map((_, j) => `<i class="${j === i ? 'on' : ''}"></i>`).join('')}</div></div><span class="a" data-d="1">▶</span></div>`; }
+    else ctl = `<div class="act"><span>${L.doIt}</span></div>`;
+    el.innerHTML = `<div class="l"><b>${esc(t)}</b><span>${esc(d)}</span></div>${ctl}`;
+  };
+  const changeOpt = (el, dir) => {
+    const k = el.dataset.opt;
+    if (SLIDERS[k]) { const [a, b, s] = SLIDERS[k], v = Math.max(a, Math.min(b, (+cfg[k] || 0) + dir * s)); if (v === +cfg[k]) return; cfg[k] = k === 'gvol' ? String(v) : v; play('tick'); }
+    else if (OPTS[k]) { const vs = OPTS[k], i = Math.max(0, vs.indexOf(String(cfg[k]))); cfg[k] = vs[(i + dir + vs.length) % vs.length]; play('move'); }
+    else return;
+    renderOpt(el); onChange(k); save();
+  };
+  const onChange = (k) => {
+    if (k === 'ui') { applyI18n(); setDev(dev); renderAll(); }
+    if (k === 'music' || k === 'mvol') musicTo(musicVol(), 250);
+    if (k === 'anim') stage.classList.toggle('noanim', cfg.anim === 'off');
+    if (k === 'ash') ashOn = cfg.ash === 'on';
+    if (k === 'launcherFull') post('toggleFull');
+    if (k === 'gvol') post('gvol', { value: cfg.gvol });
+    if (k === 'iconSet' && curPage === 'play') renderPlay();
+  };
+
+  /* ───── controles: nombres y asignación (iguales que main.js) ───── */
+  const KB_DEF = { ls_up: 'W', ls_down: 'S', ls_left: 'A', ls_right: 'D', rs_up: 'I', rs_down: 'K', rs_left: 'J', rs_right: 'L',
+    cross: 'SPACE', circle: 'LSHIFT', square: 'R', triangle: 'Q', l: 'Click 1', r: 'Click 0', start: 'RETURN', select: 'TAB', du: 'UP', dd: 'DOWN', dl: 'LEFT', dr: 'RIGHT' };
+  const PAD_DEF = { cross: 'Button A', circle: 'Button B', square: 'Button X', triangle: 'Button Y', l: 'Trigger L', r: 'Trigger R', start: 'Start', select: 'Back', du: 'Pad N', dd: 'Pad S', dl: 'Pad W', dr: 'Pad E' };
+  const PAD_IDX = ['Button A', 'Button B', 'Button X', 'Button Y', 'Shoulder L', 'Shoulder R', 'Trigger L', 'Trigger R', 'Back', 'Start', 'Thumb L', 'Thumb R', 'Pad N', 'Pad S', 'Pad W', 'Pad E'];
+  const PAD_GLY = { 'Button A': 'A', 'Button B': 'B', 'Button X': 'X', 'Button Y': 'Y', 'Shoulder L': 'LB', 'Shoulder R': 'RB', 'Trigger L': 'LT', 'Trigger R': 'RT', Back: 'BACK', Start: 'START', 'Thumb L': 'L3', 'Thumb R': 'R3', 'Pad N': 'PAD_N', 'Pad S': 'PAD_S', 'Pad W': 'PAD_W', 'Pad E': 'PAD_E' };
+  const CODE2 = { Space: 'SPACE', ShiftLeft: 'LSHIFT', ShiftRight: 'RSHIFT', ControlLeft: 'LCONTROL', ControlRight: 'RCONTROL', AltLeft: 'LMENU', AltRight: 'RMENU', Enter: 'RETURN', NumpadEnter: 'NUMPADENTER',
+    Escape: 'ESCAPE', Tab: 'TAB', Backspace: 'BACK', CapsLock: 'CAPITAL', ArrowUp: 'UP', ArrowDown: 'DOWN', ArrowLeft: 'LEFT', ArrowRight: 'RIGHT', Minus: 'MINUS', Equal: 'EQUALS',
+    BracketLeft: 'LBRACKET', BracketRight: 'RBRACKET', Semicolon: 'SEMICOLON', Quote: 'APOSTROPHE', Backquote: 'GRAVE', Backslash: 'BACKSLASH', IntlBackslash: 'OEM_102', Comma: 'COMMA', Period: 'PERIOD', Slash: 'SLASH',
+    Insert: 'INSERT', Delete: 'DELETE', Home: 'HOME', End: 'END', PageUp: 'PRIOR', PageDown: 'NEXT', NumpadAdd: 'ADD', NumpadSubtract: 'SUBTRACT', NumpadMultiply: 'MULTIPLY', NumpadDivide: 'DIVIDE', NumpadDecimal: 'DECIMAL' };
+  const codeName = (c) => { let m; if (CODE2[c]) return CODE2[c]; if ((m = /^Key([A-Z])$/.exec(c))) return m[1]; if ((m = /^Digit(\d)$/.exec(c))) return m[1]; if ((m = /^Numpad(\d)$/.exec(c))) return 'NUMPAD' + m[1]; if ((m = /^F(\d{1,2})$/.exec(c))) return c; return null; };
+  const KLAB = { es: { SPACE: 'ESPACIO', LSHIFT: 'SHIFT IZQ.', RSHIFT: 'SHIFT DER.', LCONTROL: 'CTRL IZQ.', RCONTROL: 'CTRL DER.', LMENU: 'ALT', RMENU: 'ALT GR', RETURN: 'ENTER', NUMPADENTER: 'ENTER NUM', ESCAPE: 'ESC', TAB: 'TAB', BACK: 'RETROCESO', CAPITAL: 'BLOQ MAYÚS',
+      UP: '↑', DOWN: '↓', LEFT: '←', RIGHT: '→', 'Click 0': 'CLIC IZQ.', 'Click 1': 'CLIC DER.', 'Click 2': 'CLIC RUEDA', 'Click 3': 'LATERAL 1', 'Click 4': 'LATERAL 2', 'Axis Z+': 'RUEDA ↑', 'Axis Z-': 'RUEDA ↓', DELETE: 'SUPR', PRIOR: 'RE PÁG', NEXT: 'AV PÁG', HOME: 'INICIO', END: 'FIN' },
+    en: { SPACE: 'SPACE', LSHIFT: 'L-SHIFT', RSHIFT: 'R-SHIFT', LCONTROL: 'L-CTRL', RCONTROL: 'R-CTRL', LMENU: 'ALT', RMENU: 'ALT GR', RETURN: 'ENTER', NUMPADENTER: 'NUM ENTER', ESCAPE: 'ESC', TAB: 'TAB', BACK: 'BACKSPACE', CAPITAL: 'CAPS LOCK',
+      UP: '↑', DOWN: '↓', LEFT: '←', RIGHT: '→', 'Click 0': 'LEFT CLICK', 'Click 1': 'RIGHT CLICK', 'Click 2': 'MIDDLE CLICK', 'Click 3': 'MOUSE 4', 'Click 4': 'MOUSE 5', 'Axis Z+': 'WHEEL ↑', 'Axis Z-': 'WHEEL ↓', DELETE: 'DEL', PRIOR: 'PG UP', NEXT: 'PG DN', HOME: 'HOME', END: 'END' } };
+  const kLabel = (n) => (KLAB[cfg.ui] || KLAB.es)[n] || (/^NUMPAD(\d)$/.test(n) ? 'NUM ' + n.slice(6) : n);
+  const RESERVED = new Set(['ESCAPE', 'F7', 'F9', 'F11', 'F12']);
+  const kb = () => Object.assign({}, KB_DEF, cfg.kbBinds || {});
+  const pb = () => Object.assign({}, PAD_DEF, cfg.padBinds || {});
+  const PSPG = { cross: '✕', circle: '○', square: '□', triangle: '△', l: 'L', r: 'R', start: 'ST', select: 'SE', du: '↑', dd: '↓', dl: '←', dr: '→' };
+  let binding = null;   // { id, col:'kb'|'pad', el, until }
+  const assign = (col, id, name) => {
+    const isKb = col === 'kb', map = isKb ? kb() : pb(), def = isKb ? KB_DEF : PAD_DEF;
+    const other = Object.keys(map).find((a) => a !== id && map[a] === name);
+    const store = isKb ? (cfg.kbBinds = Object.assign({}, cfg.kbBinds)) : (cfg.padBinds = Object.assign({}, cfg.padBinds));
+    if (other) { store[other] = map[id]; note(L.swapped((L.act[other] || other))); }
+    store[id] = name;
+    for (const a of Object.keys(store)) if (store[a] === def[a]) delete store[a];
+    save(); play('ok');
+  };
+  const endBind = (rerender) => { binding = null; if (rerender) { const k = focused && focused.dataset.bind; renderSettings(); if (k) { const e = $(`[data-bind="${k}"][data-col="${focused.dataset.col}"]`); if (e) focusEl(e, true); } } };
+
+  /* ───── CONFIGURACIÓN ───── */
+  let setTab = 'gfx';
+  const SET_TABS = [['gfx', 'tGfx'], ['snd', 'tSnd'], ['ctl', 'tCtl'], ['lau', 'tLau']];
+  const tabsHtml = (list, cur, attr) => list.map(([id, k]) => `<button class="tab${id === cur ? ' on' : ''}" data-nav ${attr}="${id}">${L[k]}</button>`).join('') +
+    `<span class="gl">${dev === 'pad' ? G('LB') + G('RB') : '<kbd style="font-family:var(--mono);border:1px solid #555;padding:1px 5px">Q</kbd><kbd style="font-family:var(--mono);border:1px solid #555;padding:1px 5px">E</kbd>'}</span>`;
+  const renderSettings = () => {
+    $('#setTabs').innerHTML = tabsHtml(SET_TABS, setTab, 'data-stab');
+    let h = '';
+    if (setTab === 'gfx') h = `<div class="grp">${L.gGfx}</div>${optRow('backend')}${optRow('res')}${optRow('mode')}${optRow('vsync')}
+      <div class="grp">${L.gQual}</div>${optRow('texUp')}${optRow('hdTex')}${optRow('post')}${optRow('aa')}${optRow('af')}<div class="grp">${L.gDev}</div>${optRow('fps')}${optRow('dumpTex')}`;
+    if (setTab === 'snd') h = `<div class="grp">${L.gSnd}</div>${optRow('gvol')}<div class="grp">${L.gLm}</div>${optRow('music')}${optRow('mvol')}${optRow('sfx')}`;
+    if (setTab === 'lau') h = `<div class="grp">${L.gL}</div>${optRow('ui')}${optRow('intro')}${optRow('anim')}${optRow('ash')}${optRow('launcherFull')}`;
+    if (setTab === 'ctl') {
+      const K = kb(), P = pb(), keysCam = cfg.kbCam === 'keys';
+      const acts = ['ls_up', 'ls_down', 'ls_left', 'ls_right', 'rs_up', 'rs_down', 'rs_left', 'rs_right', 'cross', 'circle', 'square', 'triangle', 'l', 'r', 'start', 'select', 'du', 'dd', 'dl', 'dr'];
+      const rows = acts.map((a) => {
+        const isStick = a.startsWith('ls_') || a.startsWith('rs_');
+        const icon = PSPG[a] ? `<span class="psp${a === 'start' || a === 'select' ? ' sh' : ''}">${PSPG[a]}</span>` : `<span class="psp sh">${a.startsWith('ls') ? 'L↕' : 'R↕'}</span>`;
+        const kbOk = !(a.startsWith('rs_') && !keysCam);
+        const kcell = kbOk ? `<div class="kc" data-nav data-bind="${a}" data-col="kb"><span>${esc(kLabel(K[a]))}</span></div>`
+          : `<div class="kc na"><span>${G('M_MOVE')}</span></div>`;
+        const pcell = isStick ? `<div class="kc na"><span>${a.startsWith('ls') ? L.fixed : L.fixedR}</span></div>`
+          : `<div class="kc" data-nav data-bind="${a}" data-col="pad">${G(PAD_GLY[P[a]] || 'A')}<span style="min-width:90px">${esc(P[a])}</span></div>`;
+        return `<div class="n">${icon}${esc(L.act[a])}</div>${kcell}${pcell}`;
+      }).join('');
+      h = `<div class="grp">${L.gIn}</div>${optRow('iconSet')}${optRow('autoControls')}
+        <div class="grp">${L.gCam}</div>${optRow('freecam')}${optRow('kbCam')}${optRow('sens')}${optRow('camInvX')}${optRow('invert')}${optRow('padInvert')}
+        <div class="grp">${L.gMap}</div><div class="binds"><div class="h">${L.bAct}</div><div class="h" style="text-align:center">${L.bKb}</div><div class="h" style="text-align:center">${L.bPad}</div>${rows}</div>
+        ${optRow('reset')}`;
+    }
+    $('#setBody').innerHTML = h;
+    $$('#setBody .opt').forEach(renderOpt);
+  };
+
+  /* ───── EXTRAS ───── */
+  let xTab = 'gallery';
+  const X_TABS = [['gallery', 'tGal'], ['credits', 'tCred']];
+  const renderExtras = () => {
+    $('#xTabs').innerHTML = tabsHtml(X_TABS, xTab, 'data-xtab');
+    let h = '';
+    if (xTab === 'mods') {
+      h = `<div class="tools"><button class="btnline" data-nav data-act="openMods">${L.openMods}</button><button class="btnline" data-nav data-act="rescan">${L.rescan}</button></div>`;
+      h += H.mods && H.mods.length ? `<div class="mods">${H.mods.map((m) => `<div class="mod" data-nav data-mod="${esc(m.id)}">
+          <div class="l"><b>${esc(m.name)}</b>${m.version ? ` <span style="display:inline;color:#777;font-size:12px">v${esc(m.version)}</span>` : ''}<span>${esc(m.description || '')}${m.author ? ' · ' + esc(m.author) : ''}</span></div>
+          <div class="pt">${(m.parts || []).map((p) => L.parts[p] || p).join(' · ')}</div><div class="tog${m.on ? ' on' : ''}"><i></i></div></div>`).join('')}</div>`
+        : `<div class="empty">${L.noMods}</div>`;
+    }
+    if (xTab === 'gallery') {
+      h = `<div class="tools"><button class="btnline" data-nav data-act="openShots">${L.openShots}</button></div>`;
+      h += H.shots && H.shots.length ? `<div class="gal">${H.shots.map((s) => `<div class="shot" data-nav data-shot="${esc(s.f)}" style="background-image:url('pt://shots/${encodeURI(s.f)}')"></div>`).join('')}</div>`
+        : `<div class="empty">${L.noShots}</div>`;
+    }
+    if (xTab === 'credits') {
+      h = `<div class="cred">
+        <div><h4>${cfg.ui === 'en' ? 'ORIGINAL GAME' : 'JUEGO ORIGINAL'}</h4><p>The 3rd Birthday © 2010–2011 Square Enix Co., Ltd.<br><small>${cfg.ui === 'en' ? 'Character design: Tetsuya Nomura. All rights belong to their owners.' : 'Diseño de personajes: Tetsuya Nomura. Todos los derechos pertenecen a sus dueños.'}</small></p></div>
+        <div><h4>${cfg.ui === 'en' ? 'SPANISH TRANSLATION' : 'TRADUCCIÓN AL ESPAÑOL'}</h4><p>Traducciones del Tío Victor<br><small>SkyBladeCloud, el_capo, Ventus, auron, Akareh, Axxel, Vash, Phoenix, Joghi, eliden, IlDucci</small></p></div>
+        <div><h4>${cfg.ui === 'en' ? 'LAUNCHER' : 'LAUNCHER'}</h4><p>Dionixu<br><small>${cfg.ui === 'en' ? 'Design and development' : 'Diseño y desarrollo'}</small></p></div>
+        <div><h4>${cfg.ui === 'en' ? 'EMULATION' : 'EMULACIÓN'}</h4><p>PPSSPP — Henrik Rydgård ${cfg.ui === 'en' ? 'and contributors' : 'y colaboradores'}<br><small>GPL 2.0+ · ppsspp.org</small></p></div>
+        <div><h4>${cfg.ui === 'en' ? 'TOOLS' : 'HERRAMIENTAS'}</h4><p>xdelta3 — Joshua MacDonald<br>Electron / Chromium</p></div>
+        <div><h4>${cfg.ui === 'en' ? 'NOTICE' : 'AVISO'}</h4><p><small>${cfg.ui === 'en' ? 'Fan project, not affiliated with Square Enix. No game files are distributed: you need your own copy of the game.' : 'Proyecto de fans sin relación con Square Enix. No se distribuye ningún archivo del juego: necesitas tu propia copia.'}</small></p></div>
+        <div><p style="font-family:var(--type);font-size:20px;letter-spacing:3px;margin-top:6px">${cfg.ui === 'en' ? 'Thanks for playing.' : 'Gracias por jugar.'}</p></div>
+      </div>`;
+    }
+    $('#xBody').innerHTML = h;
+  };
+
+  const cycleVer = (d) => {
+    const vs = ['es', 'en', 'jp']; cfg.version = vs[(vs.indexOf(cfg.version) + d + 3) % 3]; save(); play('move');
+    renderHome(); if (curPage === 'play') renderPlay();
+  };
+  const renderAll = () => { renderHome(); renderPlay(); renderSettings(); renderExtras(); hints(); };
+
+  /* ───── páginas ───── */
+  let curPage = 'home';
+  const showPage = (p, quiet) => {
+    if (p === curPage) return;
+    curPage = p; if (!quiet) play('page');
+    $$('.page').forEach((s) => s.classList.toggle('on', s.id === 'p-' + p));
+    $$('#nav .ni[data-page]').forEach((n) => n.classList.toggle('on', n.dataset.page === p));
+    if (p === 'play') renderPlay(); if (p === 'settings') renderSettings(); if (p === 'extras') renderExtras();
+    hints();
+    if (Math.random() < .5) { const lg = $('#logo'); lg.classList.remove('glitch'); void lg.offsetWidth; if (p === 'home') lg.classList.add('glitch'); }
+  };
+
+  /* el lienzo y la página no deben desplazarse nunca (si no, todo queda corrido y el ratón no acierta) */
+  const pin = () => { for (const el of [stage, $('#ui'), document.documentElement, document.body]) if (el.scrollTop || el.scrollLeft) { el.scrollTop = 0; el.scrollLeft = 0; } $$('.page').forEach((p) => { if (p.scrollTop || p.scrollLeft) { p.scrollTop = 0; p.scrollLeft = 0; } }); };
+  addEventListener('scroll', (e) => { if (!(e.target instanceof Element) || !e.target.classList.contains('scroll')) pin(); }, true);
+  addEventListener('focusin', (e) => { if (e.target && e.target.blur) e.target.blur(); pin(); });
+
+  /* ───── navegación espacial (mando / teclado) ───── */
+  let focused = null;
+  const scope = () => { const d = $('.dlg.on'); if (d) return d; return document.getElementById('ui'); };
+  const visible = (el) => { if (!el.offsetParent && getComputedStyle(el).position !== 'fixed') return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !el.closest('.page:not(.on)'); };
+  const navItems = () => $$('[data-nav]', scope()).filter(visible);
+  const focusEl = (el, quiet) => {
+    if (focused === el) return; if (focused) focused.classList.remove('focus');
+    focused = el; if (!el) return; el.classList.add('focus'); if (!quiet) play('move');
+    const sc = el.closest('.scroll');
+    if (sc) { const r = el.getBoundingClientRect(), s = sc.getBoundingClientRect(), k = s.height / sc.clientHeight || 1;
+      if (r.top < s.top + 10 || r.bottom > s.bottom - 10) sc.scrollTo({ top: sc.scrollTop + ((r.top + r.height / 2) - (s.top + s.height / 2)) / k, behavior: 'smooth' }); }
+  };
+  const inNav = (el) => !!(el && el.closest('#nav'));
+  const navOf = () => $(`#nav .ni[data-page="${curPage}"]`) || $('#nav .ni');
+  const contentDefault = () => {
+    if (curPage === 'home') return $('#playBig');
+    if (curPage === 'play') return $(`[data-ver="${cfg.version}"]`);
+    if (curPage === 'settings') return $('#setBody [data-nav]') || $('#p-settings .tab.on');
+    return $(`#p-${curPage} .tab.on`);
+  };
+  const defaultFocus = () => { const d = $('.dlg.on'); if (d) return $('[data-act="quitNo"]', d); return contentDefault() || navOf(); };
+  const geo = (items, dir) => {
+    const a = focused.getBoundingClientRect(), ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+    let best = null, bs = 1e9;
+    for (const el of items) {
+      if (el === focused) continue;
+      const b = el.getBoundingClientRect(), bx = b.left + b.width / 2, by = b.top + b.height / 2;
+      let main, side;
+      if (dir === 'LEFT') { if (b.right > a.left + 4) continue; main = a.left - b.right; side = Math.max(0, Math.abs(by - ay) - (a.height + b.height) / 2) * 3 + Math.abs(by - ay) * .3; }
+      if (dir === 'RIGHT') { if (b.left < a.right - 4) continue; main = b.left - a.right; side = Math.max(0, Math.abs(by - ay) - (a.height + b.height) / 2) * 3 + Math.abs(by - ay) * .3; }
+      if (dir === 'UP') { if (b.bottom > a.top + 4) continue; main = a.top - b.bottom; side = Math.max(0, Math.abs(bx - ax) - (a.width + b.width) / 2) * 3 + Math.abs(bx - ax) * .05; }
+      if (dir === 'DOWN') { if (b.top < a.bottom - 4) continue; main = b.top - a.bottom; side = Math.max(0, Math.abs(bx - ax) - (a.width + b.width) / 2) * 3 + Math.abs(bx - ax) * .05; }
+      const sc = main + side;
+      if (sc < bs) { bs = sc; best = el; }
+    }
+    return best;
+  };
+  const move = (dir) => {
+    const items = navItems();
+    if (!focused || !items.includes(focused)) { focusEl(defaultFocus() || items[0]); return; }
+    if (focused.closest('.dlg')) { const b = geo(items, dir); if (b) focusEl(b); return; }
+    if (inNav(focused)) {   // menú lateral: ↑↓ entre opciones, → entra al contenido
+      const list = $$('#nav .ni').filter(visible), i = list.indexOf(focused);
+      if (dir === 'UP' && i > 0) focusEl(list[i - 1]);
+      if (dir === 'DOWN' && i < list.length - 1) focusEl(list[i + 1]);
+      if (dir === 'RIGHT') { const c = contentDefault(); if (c && visible(c)) focusEl(c); }
+      return;
+    }
+    const b = geo(items.filter((el) => !inNav(el) && !el.closest('#top')), dir);
+    if (b) focusEl(b); else if (dir === 'LEFT' || (dir === 'UP' && curPage === 'home')) focusEl(navOf());
+  };
+  const back = () => {
+    if (binding) { endBind(true); play('back'); return; }
+    if ($('#lbx').classList.contains('on')) { $('#lbx').classList.remove('on'); play('back'); return; }
+    if ($('#dlgQuit').classList.contains('on')) { closeQuit(); return; }
+    // B / ESC: soltar la selección y volver al menú lateral; desde el menú, a Inicio. Nunca abre "Salir".
+    if (focused && !inNav(focused)) { play('back'); focusEl(navOf(), true); return; }
+    if (curPage !== 'home') { play('back'); showPage('home', true); focusEl($(`#nav [data-page="home"]`), true); }
+  };
+  const tabStep = (d) => {
+    if (curPage === 'settings') { const i = SET_TABS.findIndex((t) => t[0] === setTab); setTab = SET_TABS[(i + d + SET_TABS.length) % SET_TABS.length][0]; renderSettings(); play('page'); focusEl($('#p-settings .tab.on'), true); }
+    if (curPage === 'extras') { const i = X_TABS.findIndex((t) => t[0] === xTab); xTab = X_TABS[(i + d + X_TABS.length) % X_TABS.length][0]; renderExtras(); play('page'); focusEl($('#p-extras .tab.on'), true); }
+  };
+
+  /* ───── acciones ───── */
+  const openQuit = () => { $('#dlgQuit').classList.add('on'); play('open'); focusEl($('[data-act="quitNo"]'), true); };
+  const closeQuit = () => { $('#dlgQuit').classList.remove('on'); play('back'); focusEl(defaultFocus(), true); };
+  let leaving = false;
+  const quit = () => {
+    if (leaving) return; leaving = true; $('#dlgQuit').classList.remove('on'); play('back'); musicTo(0, 900);
+    stage.classList.add('crt');
+    setTimeout(() => { $('#outro').classList.add('on', 'run'); }, 650);
+    setTimeout(() => { if (host) post('close'); else { stage.classList.remove('crt'); $('#outro').classList.remove('on', 'run'); leaving = false; } }, 3100);
+  };
+  let launching = false;
+  const launch = (version) => {
+    if (launching || leaving) return;
+    version = version || cfg.version;
+    const inf = vInfo(version);
+    if (scanning) { note(L.stScan); return; }
+    if (!H.ppssppOk) { note(L.stNoPP, true); return; }
+    if (inf === 'missing') { note(L.stNoIso + ' (' + vName(version) + ')', true); return; }
+    launching = true; play('start'); musicTo(0, 1400);
+    const fl = $('#flash'); fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+    stage.classList.add('dive');
+    $('#lWho').textContent = L.launchWho + ' // ' + vName(version).toUpperCase();
+    $('#lSt').textContent = L.lPrep; $('#lBar').classList.remove('on'); $('#lFill').style.width = '0';
+    setTimeout(() => $('#launch').classList.add('on'), 450);
+    if (cfg.iconSet !== 'kb') cfg.iconSet = 'xbox';
+    const icon = cfg.iconSet;
+    setTimeout(() => {
+      if (host) post('play', { version, iconSet: icon, config: cfg });
+      else { note(L.maqPlay); setTimeout(returned, 2200); }
+    }, 900);
+  };
+  // Quita al instante la pantalla OVERDIVE (sin transiciones), para que al volver del juego no se vea nada a medias
+  const resetLaunchFx = () => {
+    stage.classList.add('instant');
+    $('#launch').classList.remove('on'); stage.classList.remove('dive'); $('#flash').classList.remove('go');
+    void stage.offsetWidth; stage.classList.remove('instant');
+  };
+  document.addEventListener('visibilitychange', () => { if (document.hidden && launching) resetLaunchFx(); });
+  const returned = () => {
+    launching = false; resetLaunchFx();
+    const ui = $('#ui'); ui.classList.remove('back'); void ui.offsetWidth; ui.classList.add('back');
+    musicStart(); renderHome();
+  };
+
+  /* ───── clics ───── */
+  stage.addEventListener('click', (e) => {
+    if (e.target.closest('#lbx')) { $('#lbx').classList.remove('on'); return; }
+    const vc = e.target.closest('[data-vc]');
+    if (vc) { e.stopPropagation(); cycleVer(+vc.dataset.vc); return; }
+    const el = e.target.closest('[data-nav],[data-d]');
+    if (!el) return;
+    if (el.dataset.d) { const row = el.closest('[data-opt]'); if (row) { focusEl(row, true); changeOpt(row, +el.dataset.d); } return; }
+    activate(el, e);
+  });
+  const activate = (el, ev) => {
+    const d = el.dataset;
+    if (d.page) { showPage(d.page); if (dev === 'pad') { const c = contentDefault(); if (c) focusEl(c, true); } return; }
+    if (d.goto) { showPage(d.goto); return; }
+    if (d.extra) { xTab = d.extra; showPage('extras'); renderExtras(); return; }
+    if (d.ver) { if (cfg.version !== d.ver) { cfg.version = d.ver; save(); play('ok'); renderPlay(); renderHome(); focusEl($(`[data-ver="${d.ver}"]`), true); } else launch(); return; }
+    if (d.stab) { setTab = d.stab; renderSettings(); play('page'); focusEl($('#p-settings .tab.on'), true); return; }
+    if (d.xtab) { xTab = d.xtab; renderExtras(); play('page'); focusEl($('#p-extras .tab.on'), true); return; }
+    if (d.opt) {
+      if (d.opt === 'reset') { cfg.kbBinds = {}; cfg.padBinds = {}; save(); renderSettings(); note(L.ctlReset); play('ok'); focusEl($('[data-opt="reset"]'), true); return; }
+      if (SLIDERS[d.opt] && ev && ev.target.closest('.tr')) { const tr = ev.target.closest('.tr').getBoundingClientRect(), [a, b, s] = SLIDERS[d.opt]; let v = a + (b - a) * Math.max(0, Math.min(1, (ev.clientX - tr.left) / tr.width)); v = Math.round(v / s) * s; cfg[d.opt] = d.opt === 'gvol' ? String(v) : v; renderOpt(el); onChange(d.opt); save(); play('tick'); return; }
+      // A / ENTER: confirma la opción y pasa a la siguiente (el valor se cambia con ← →). Con el ratón, el clic la cambia.
+      if (!ev && (OPTS[d.opt] || SLIDERS[d.opt])) { play('ok'); move('DOWN'); return; }
+      changeOpt(el, 1); return;
+    }
+    if (d.bind) {
+      binding = { id: d.bind, col: d.col, el, t: performance.now() };
+      el.classList.add('wait'); el.querySelector('span').textContent = d.col === 'kb' ? L.press : L.pressPad; play('open'); return;
+    }
+    if (d.mod) { const m = H.mods.find((x) => x.id === d.mod); if (m) { m.on = !m.on; post('mod', { id: m.id, on: m.on }); note(m.on ? L.modOn : L.modOff); play('ok'); renderExtras(); focusEl($(`[data-mod="${CSS.escape(m.id)}"]`), true); } return; }
+    if (d.shot) { $('#lbxImg').src = 'pt://shots/' + encodeURI(d.shot); $('#lbx').classList.add('on'); play('open'); return; }
+    switch (d.act) {
+      case 'launch': launch(); break;
+      case 'continue': launch(H.config.lastVersion || cfg.version); break;
+      case 'quit': openQuit(); break;
+      case 'quitYes': quit(); break;
+      case 'quitNo': closeQuit(); break;
+      case 'min': post('minimize'); break;
+      case 'full': post('toggleFull'); break;
+      case 'openMods': post('openFolder', { which: 'mods' }); play('ok'); break;
+      case 'openShots': post('openFolder', { which: 'capturas' }); play('ok'); break;
+      case 'rescan': post('rescan'); scanning = { pct: null }; renderHome(); play('ok'); break;
+    }
+  };
+  stage.addEventListener('mouseover', (e) => { const el = e.target.closest('[data-nav]'); if (el && !binding && el.closest('#ui,.dlg.on')) focusEl(el); });
+  stage.addEventListener('mousedown', (e) => {
+    if (binding && binding.col === 'kb' && performance.now() - binding.t > 200) {
+      e.preventDefault(); e.stopPropagation();
+      const name = ['Click 0', 'Click 2', 'Click 1', 'Click 3', 'Click 4'][e.button]; if (name) { assign('kb', binding.id, name); endBind(true); }
+    }
+  }, true);
+  stage.addEventListener('click', (e) => { if (binding && binding.col === 'kb') { e.stopPropagation(); } }, true);
+  addEventListener('wheel', (e) => { if (binding && binding.col === 'kb') { assign('kb', binding.id, e.deltaY < 0 ? 'Axis Z+' : 'Axis Z-'); endBind(true); } }, { passive: true });
+  let lastMouse = null;
+  addEventListener('mousemove', (e) => { if (dev === 'pad' && lastMouse && Math.abs(e.screenX - lastMouse[0]) + Math.abs(e.screenY - lastMouse[1]) > 3) setDev('kb'); lastMouse = [e.screenX, e.screenY]; });
+  addEventListener('mousedown', () => setDev('kb'), true);
+  addEventListener('contextmenu', (e) => e.preventDefault());
+
+  /* ───── teclado ───── */
+  addEventListener('keydown', (e) => {
+    if (introOn) { e.preventDefault(); skipIntro(); return; }
+    if (e.key === 'F11' || (e.altKey && e.key === 'Enter')) return;
+    setDev('kb');
+    if (binding) {
+      e.preventDefault();
+      if (binding.col !== 'kb') { if (e.code === 'Escape') { endBind(true); play('back'); } return; }
+      const n = codeName(e.code);
+      if (!n) return;
+      if (RESERVED.has(n)) { note(L.reserved(n)); play('boo'); return; }
+      assign('kb', binding.id, n); endBind(true); return;
+    }
+    if (launching || leaving) return;
+    const k = e.key;
+    const dirs = { ArrowUp: 'UP', ArrowDown: 'DOWN', ArrowLeft: 'LEFT', ArrowRight: 'RIGHT' };
+    if (dirs[k]) { e.preventDefault(); dirInput(dirs[k]); return; }
+    if (k === 'Enter' || k === ' ') { e.preventDefault(); if (e.repeat) return; if (!focused || !navItems().includes(focused)) { focusEl(defaultFocus()); return; } activate(focused); return; }
+    if (k === 'Escape' || k === 'Backspace') { e.preventDefault(); back(); return; }
+    if (k === 'Tab') { e.preventDefault(); return; }
+    if (k === 'q' || k === 'Q') tabStep(-1);
+    if (k === 'e' || k === 'E') tabStep(1);
+  });
+  const dirInput = (d) => {
+    if (focused && navItems().includes(focused) && (d === 'LEFT' || d === 'RIGHT') && focused.dataset.opt && (OPTS[focused.dataset.opt] || SLIDERS[focused.dataset.opt])) { changeOpt(focused, d === 'LEFT' ? -1 : 1); return; }
+    move(d);
+  };
+
+  /* ───── mando (Gamepad API) ───── */
+  const prevB = []; const rep = {}; const prevDir = {};
+  const padLoop = (t) => {
+    const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];
+    const gp = pads[0];
+    if (gp) {
+      const b = gp.buttons.map((x) => x.pressed || x.value > .5);
+      const ax = gp.axes || [];
+      const dir = { UP: b[12] || ax[1] < -.55, DOWN: b[13] || ax[1] > .55, LEFT: b[14] || ax[0] < -.55, RIGHT: b[15] || ax[0] > .55 };
+      const edge = b.some((x, i) => x && !prevB[i]) || Object.keys(dir).some((k) => dir[k] && !prevDir[k]);
+      if (edge) setDev('pad');
+      Object.assign(prevDir, dir);
+      const down = (i) => b[i] && !prevB[i];
+      if (introOn) { if (b.some((x, i) => x && !prevB[i])) skipIntro(); }
+      else if (binding && binding.col === 'pad') {
+        if (performance.now() - binding.t > 250) { const i = b.findIndex((x, j) => x && !prevB[j] && j < 16); if (i >= 0) { if (i === 8 && false) return; assign('pad', binding.id, PAD_IDX[i]); endBind(true); } }
+      } else if (binding) { if (down(1)) { endBind(true); play('back'); } }
+      else if (!launching && !leaving) {
+        if (down(0)) { if (!focused || !navItems().includes(focused)) focusEl(defaultFocus()); else activate(focused); }
+        if (down(1)) back();
+        if (down(4)) tabStep(-1);
+        if (down(5)) tabStep(1);
+        for (const d of ['UP', 'DOWN', 'LEFT', 'RIGHT']) {
+          if (dir[d]) { if (!rep[d]) { rep[d] = t + 340; dirInput(d); } else if (t >= rep[d]) { rep[d] = t + 105; dirInput(d); } }
+          else rep[d] = 0;
+        }
+      }
+      b.forEach((x, i) => (prevB[i] = x));
+    }
+    requestAnimationFrame(padLoop);
+  };
+  requestAnimationFrame(padLoop);
+
+  /* ───── ceniza ───── */
+  let ashOn = cfg.ash === 'on';
+  const cv = $('#ash'), cx = cv.getContext('2d'); cv.width = 1600; cv.height = 900;
+  const sprite = (r, col, glow) => { const c = document.createElement('canvas'), s = Math.ceil(r * (glow ? 6 : 2.5)) * 2; c.width = c.height = s;
+    const g = c.getContext('2d'), gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); gr.addColorStop(0, col); gr.addColorStop(glow ? .25 : .5, col.replace(/[\d.]+\)$/, glow ? '.45)' : '.6)')); gr.addColorStop(1, col.replace(/[\d.]+\)$/, '0)'));
+    g.fillStyle = gr; g.fillRect(0, 0, s, s); return c; };
+  const SPR = { ash: sprite(2, 'rgba(225,225,230,1)', false), red: sprite(2, 'rgba(255,70,60,1)', true) };
+  const P = Array.from({ length: 70 }, () => ({ x: Math.random() * 1600, y: Math.random() * 900, r: .5 + Math.random() * 1.1, vy: .15 + Math.random() * .45, vx: -.15 + Math.random() * .3, ph: Math.random() * 6.3, red: Math.random() < .12 }));
+  let ashLast = 0, ashClear = false;
+  const ash = (t) => {
+    requestAnimationFrame(ash);
+    const on = ashOn && cfg.anim !== 'off' && !document.hidden && !launching;
+    if (!on) { if (!ashClear) { cx.clearRect(0, 0, 1600, 900); ashClear = true; } return; }
+    if (t - ashLast < 32) return;   // ~30 fps: suficiente para la ceniza y deja libre la GPU
+    const k = Math.min(3, (t - ashLast) / 16.7); ashLast = t; ashClear = false;
+    cx.clearRect(0, 0, 1600, 900);
+    for (const p of P) {
+      p.y += p.vy * k; p.ph += .015 * k; p.x += (p.vx + Math.sin(p.ph) * .3) * k;
+      if (p.y > 910) { p.y = -10; p.x = Math.random() * 1600; }
+      const img = p.red ? SPR.red : SPR.ash, s = img.width * p.r;
+      cx.globalAlpha = p.red ? .55 + .3 * Math.sin(p.ph * 3) : .22 + .18 * Math.sin(p.ph * 2);
+      cx.drawImage(img, p.x - s / 2, p.y - s / 2, s, s);
+    }
+    cx.globalAlpha = 1;
+  };
+  requestAnimationFrame(ash);
+
+  /* ───── intro ───── */
+  let introOn = false, introT = [];
+  const nz = $('#noise'), nctx = nz.getContext('2d'); nz.width = 320; nz.height = 180;
+  let nzOn = false;
+  const noise = () => {
+    if (!nzOn) return;
+    const im = nctx.createImageData(320, 180), d = im.data;
+    for (let i = 0; i < d.length; i += 4) { const v = Math.random() * 255; d[i] = v; d[i + 1] = v * .9; d[i + 2] = v * .9; d[i + 3] = 255; }
+    nctx.putImageData(im, 0, 0); requestAnimationFrame(noise);
+  };
+  const finishIntro = () => {
+    if (!introOn) return; introOn = false; introT.forEach(clearTimeout);
+    const it = $('#intro'); it.classList.add('out'); nzOn = false;
+    $('#ui').classList.add('enter'); setTimeout(() => $('#ui').classList.remove('enter'), 1200);
+    setTimeout(() => { it.classList.remove('on', 'run', 'out'); }, 950);
+    musicStart(); focusEl(defaultFocus(), true);
+    setTimeout(() => { const lg = $('#logo'); lg.classList.add('glitch'); }, 500);
+  };
+  const skipIntro = () => finishIntro();
+  const runIntro = () => {
+    introOn = true;
+    const it = $('#intro'); it.classList.add('on');
+    nz.style.opacity = '.18'; nzOn = true; requestAnimationFrame(noise);
+    const lines = ['> CTI ARCHIVE SYSTEM v3.11', '> ESTABLISHING LINK ............ <b>OK</b>', '> OVERDIVE MODULE .............. <b>ONLINE</b>', '> SUBJECT: AYA BREA', '> NEW YORK, 2013/12/24'];
+    const lg = $('#ilog'); lg.innerHTML = '';
+    lines.forEach((l, i) => introT.push(setTimeout(() => { lg.innerHTML += l + '\n'; play('tick'); }, 120 + i * 210)));
+    introT.push(setTimeout(() => { it.classList.add('run'); nz.style.transition = 'opacity 1s'; nz.style.opacity = '.05'; }, 300));
+    const title = '[The 3rd Birthday]', box = $('#ilogo');
+    box.innerHTML = [...title].map((c, i) => `<span${c === '3' ? ' class="r"' : ''} style="${c === '3' ? 'color:var(--red-hi)' : ''}">${c === ' ' ? '&nbsp;' : esc(c)}</span>`).join('');
+    const spans = $$('span', box), order = spans.map((_, i) => i).sort(() => Math.random() - .5);
+    order.forEach((idx, k) => introT.push(setTimeout(() => {
+      const s = spans[idx]; s.style.transition = 'opacity .08s'; s.style.opacity = '1';
+      if (Math.random() < .3) { s.style.opacity = '.2'; setTimeout(() => (s.style.opacity = '1'), 70); }
+    }, 2100 + k * 55)));
+    introT.push(setTimeout(() => { lg.style.transition = 'opacity .8s'; lg.style.opacity = '0'; }, 2600));
+    introT.push(setTimeout(finishIntro, 5600));
+  };
+
+  /* ───── mensajes del proceso principal ───── */
+  if (host) host.addEventListener('message', (ev) => {
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    const d = m.data;
+    switch (m.type) {
+      case 'state': {
+        H = Object.assign(H, d); if ('fullscreen' in d) document.body.classList.toggle('fs', !!d.fullscreen);
+        if (!firstState) { firstState = true; const c = d.config || {}; cfg = Object.assign({}, DEF, cfg, c); if (cfg.iconSet !== 'kb') cfg.iconSet = 'xbox'; applyI18n(); stage.classList.toggle('noanim', cfg.anim === 'off'); ashOn = cfg.ash === 'on'; scanning = { pct: null }; }
+        else scanning = null;
+        if (d.mods) H.mods = d.mods;
+        renderHome(); if (curPage === 'play') renderPlay(); if (curPage === 'extras') renderExtras();
+        break;
+      }
+      case 'scan': scanning = { pct: d.pct, file: d.file }; renderHome(); if (launching) $('#lSt').textContent = L.lScan(d.file) + ' ' + d.pct + '%'; break;
+      case 'patch':
+        if (!launching) break;
+        $('#lBar').classList.add('on'); $('#lFill').style.width = (d.pct || 0) + '%';
+        $('#lSt').textContent = d.phase === 'apply' ? L.lApply(d.from || '') + ' ' + (d.pct || 0) + '%' : d.phase === 'verify' ? L.lVerify + ' ' + (d.pct || 0) + '%' : L.lOpen;
+        break;
+      case 'gameStarted': $('#lSt').textContent = L.lOpen; $('#lBar').classList.remove('on'); break;
+      case 'gameClosed': H.config.playtime = d.playtime; returned(); break;
+      case 'error': note((L.err) + ': ' + d, true); if (launching) returned(); break;
+      case 'cfgPatch': Object.assign(cfg, d); if (curPage === 'settings') renderSettings(); break;
+      case 'fullscreen': document.body.classList.toggle('fs', !!d); cfg.launcherFull = d ? 'on' : 'off'; try { localStorage.setItem('t3b_cfg', JSON.stringify(cfg)); } catch (e) {} if (curPage === 'settings' && setTab === 'lau') renderSettings(); break;
+    }
+  });
+
+  /* ───── arranque ───── */
+  applyI18n();
+  stage.classList.toggle('noanim', cfg.anim === 'off');
+  document.body.classList.add(dev);
+  $('#devTxt').textContent = dev === 'pad' ? L.pad : L.kb;
+  if (!host) { // maqueta en el navegador
+    H = Object.assign(H, { ppssppOk: true, versions: { es: true, esReady: false, esSource: 'USA', en: true, jp: true, xdelta: true },
+      config: { playtime: 45120, lastPlayed: Date.now() - 86400000 * 2, sessions: 7, lastVersion: 'es' }, saves: { count: 3, last: Date.now() - 86400000 * 2 } });
+  }
+  renderAll();
+  post('init');
+  if (cfg.intro === 'off' || /[?&]nointro/.test(location.search)) { $('#ui').classList.add('enter'); setTimeout(() => $('#ui').classList.remove('enter'), 1200); musicStart(); setTimeout(() => focusEl(defaultFocus(), true), 50); }
+  else runIntro();
+  window.__t3b = { showPage, launch, quit, setTab: (t) => { setTab = t; renderSettings(); }, setX: (t) => { xTab = t; renderExtras(); }, openQuit, setDev };
+})();
+</script>
+</body>
+</html>

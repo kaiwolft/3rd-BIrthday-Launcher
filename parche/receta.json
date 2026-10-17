@@ -1,0 +1,21 @@
+﻿{
+    "juego":  "The 3rd Birthday",
+    "creado":  "2026-10-16T15:47:36",
+    "destino":  {
+                    "md5":  "C0E56A15C0D92450BDB1BE09426B7300",
+                    "bytes":  1387694080,
+                    "descripcion":  "Traduccion al espanol (UNDUB) - creditos en README"
+                },
+    "fuentes":  [
+                    {
+                        "disc_id":  "ULUS10567",
+                        "region":  "USA (original)",
+                        "md5_origen":  "47A7CB8E9E73D8AABEF8139DB7EE522B",
+                        "bytes_origen":  1467547648,
+                        "parche":  "T3B_ES_desde_ULUS10567.xdelta",
+                        "md5_parche":  "6537BB47F88EECE50D126CF40FD24EA5",
+                        "bytes_parche":  550857087,
+                        "verificado":  true
+                    }
+                ]
+}

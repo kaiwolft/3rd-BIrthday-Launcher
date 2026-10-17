@@ -1,0 +1,24 @@
+THE 3RD BIRTHDAY - DIONIXU'S LAUNCHER · INSTALADOR PARA WINDOWS
+==============================================================
+
+ES
+1. Descomprime este .zip en cualquier carpeta (no lo ejecutes desde dentro del .zip).
+2. Abre "Instalar The 3rd Birthday.exe".
+   Si Windows SmartScreen avisa: "Más información" > "Ejecutar de todas formas" (el programa no está firmado).
+3. Elige tu copia ORIGINAL del juego (ISO de tu UMD): la americana (ULUS-10567), la japonesa (ULJM-05798) o las dos.
+   - Americana: juegas en inglés y en español con voces japonesas (el parche al español va integrado).
+   - Japonesa: juegas en japonés.
+4. Elige la carpeta de instalación y pulsa INSTALAR. PPSSPP ya viene incluido.
+5. Para añadirlo a Steam: en la carpeta instalada, doble clic en AGREGAR_A_STEAM.bat.
+Si algo falla, envía el archivo instalacion.log de la carpeta de instalación.
+
+EN
+1. Unzip this .zip anywhere (do not run it from inside the .zip).
+2. Open "Instalar The 3rd Birthday.exe".
+   If Windows SmartScreen warns you: "More info" > "Run anyway" (the program is not signed).
+3. Choose your ORIGINAL copy of the game (ISO from your UMD): US (ULUS-10567), Japanese (ULJM-05798) or both.
+   - US: play in English, and in Spanish with Japanese voices (the Spanish patch is built in).
+   - Japanese: play in Japanese.
+4. Choose the install folder and press INSTALL. PPSSPP is included.
+5. To add it to Steam: in the installed folder, double-click AGREGAR_A_STEAM.bat.
+If something fails, send the instalacion.log file from the install folder.

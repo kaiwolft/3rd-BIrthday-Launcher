@@ -1,0 +1,4 @@
+#!/bin/sh
+# Instalador de The 3rd Birthday - Dionixu's Launcher (AppImage)
+HERE="$(dirname "$(readlink -f "$0")")"
+exec "$HERE/electron" --no-sandbox "$@"
